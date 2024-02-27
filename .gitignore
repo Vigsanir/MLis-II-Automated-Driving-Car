@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/__pycache__
+/utils
+/temp
+/models
+/machine-learning-in-science-ii-2024
+/example.pickle
+/.vs
