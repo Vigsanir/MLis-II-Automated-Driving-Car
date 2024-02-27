@@ -9,7 +9,7 @@ import numpy as np
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-LOCAL_DEBUG_MODE = Fase
+LOCAL_DEBUG_MODE = False
 LOCAL_DEBUG_MODE_SHOW_IMG = False
 
 def construct_paths():
@@ -17,8 +17,8 @@ def construct_paths():
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     # Define relative paths
-    training_data_relative_path = "machine-learning-in-science-ii-2024/training_data1/training_data"
-    training_labels_relative_path = "machine-learning-in-science-ii-2024/training_norm1.csv"
+    training_data_relative_path = "machine-learning-in-science-ii-2024/training_data/training_data"
+    training_labels_relative_path = "machine-learning-in-science-ii-2024/training_norm.csv"
     test_data_relative_path = "machine-learning-in-science-ii-2024/test_data/test_data"
     submission_csv_relative_path = "machine-learning-in-science-ii-2024/sampleSubmission.csv"
 
@@ -82,7 +82,7 @@ def load_training_data(training_data_dir, training_labels_path, desired_size=(32
     # Convert to NumPy arrays
         # Stack images into a single array
    # train_images = np.stack(train_images)
-    train_images = np.array(train_images, dtype=np.float64)
+    train_images = np.array(train_images, dtype=np.float32)
     labels = labels_df[['angle', 'speed']].values
 
     # Print shapes in debug mode
