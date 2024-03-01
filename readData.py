@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -47,7 +49,7 @@ def load_training_data(training_data_dir, training_labels_path, desired_size=(32
     # Load images
     train_images = []
     # Load labels
-    labels_list = []
+    
     for image_id in labels_df['image_id']:
         # Construct the image path
         image_path = os.path.join(training_data_dir, f"{image_id}.png")
@@ -65,9 +67,7 @@ def load_training_data(training_data_dir, training_labels_path, desired_size=(32
             image_array = np.transpose(image_array, (1, 0, 2))  # Swap height and width
         
         train_images.append(image_array)
-        # Load labels
-        #label_values = labels_df.loc[labels_df['image_id'] == image_id, ['angle', 'speed']].values
-        #labels_list.append(label_values)
+
 
 
     # Assuming we have one image to show (for example, the first image)
@@ -92,6 +92,34 @@ def load_training_data(training_data_dir, training_labels_path, desired_size=(32
 
     return train_images, labels
 
+
+
+
+def load_test_images(test_data_dir, image_size=(200, 200)):
+    test_images = []
+    image_ids = []
+
+    for filename in os.listdir(test_data_dir):
+        if filename.endswith(".png"):
+            image_path = os.path.join(test_data_dir, filename)
+            img = Image.open(image_path)
+            # Convert to RGB mode with 24-bit depth
+            img = img.convert('RGB')
+
+            # Resize the image to the specified size
+            img = img.resize(image_size)
+            
+            # Convert the PIL Image to a NumPy array
+            img_array = np.array(img)
+            
+            # Ensure the shape is (height, width, channels)
+            if img_array.shape[-1] != 3:
+                img_array = np.transpose(img_array, (1, 0, 2))  # Swap height and width
+
+            test_images.append(img_array)
+            image_ids.append(filename.split(".")[0])  # Extracting the image ID from the filename
+
+    return np.array(test_images, dtype=np.float32), image_ids
 
 # Check if in debug mode before executing example usage
 if LOCAL_DEBUG_MODE:
