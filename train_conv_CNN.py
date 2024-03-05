@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from utils.debug_utils import debug_log
 from readData import construct_paths, load_training_data, load_test_images
-from models.cnn_model import create_cnn_model
+from models.cnn_model import create_cnn_model, create_cnn_model_v2
 from keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
@@ -41,12 +41,13 @@ def test_cnn_model(model):
     results_df.to_csv('new_submission.csv', index=False)
 
 
-def train_cnn_model(X_train, y_train, epochs=10, batch_size=128, pool_size=(2, 2)):
+def train_cnn_model(X_train, y_train, epochs=100, batch_size=128, pool_size=(2, 2)):
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1)
     
     input_shape = X_train.shape[1:]
     
-    model = create_cnn_model(input_shape, pool_size)
+    #model = create_cnn_model(input_shape, pool_size)
+    model = create_cnn_model_v2(input_shape, pool_size)
     
     datagen = ImageDataGenerator(channel_shift_range=0.2)
     datagen.fit(X_train)

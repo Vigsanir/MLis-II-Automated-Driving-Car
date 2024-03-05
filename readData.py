@@ -72,7 +72,7 @@ def load_training_data(training_data_dir, training_labels_path, desired_size=(32
 
     # Assuming we have one image to show (for example, the first image)
     if LOCAL_DEBUG_MODE_SHOW_IMG:
-    
+            
         image_to_show = train_images[0]
         # Display the image
         plt.imshow(image_to_show)
@@ -127,3 +127,9 @@ if LOCAL_DEBUG_MODE:
     debug_log("Run the LOCAL debug logic.")
     training_data_dir, training_labels_path, test_data_dir, submission_csv_path = construct_paths()
     load_training_data(training_data_dir, training_labels_path)
+
+training_data_dir, training_labels_path, _, _ = construct_paths()
+    
+    # Load the CSV file into a Pandas DataFrame
+labels_df = pd.read_csv("new_submission.csv")
+print(labels_df)
