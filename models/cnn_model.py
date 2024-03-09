@@ -3,7 +3,7 @@
 from tensorflow import keras
 from keras.models import Model
 from keras.models import Sequential
-from keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
+from keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D, Input
 
 
 def create_cnn_model(input_shape, pool_size=(2, 2)):
@@ -74,3 +74,54 @@ def create_cnn_model_v2(input_shape, pool_size=(2, 2)):
     model.compile(optimizer='adam', loss='mse')  
     
     return model
+
+
+def create_cnn_model_v2(image_shape, pool_size=(2, 2)):
+    """
+    Creates two CNN models with the specified input shape.
+    """
+    model_speed = Sequential([
+        Input(shape=image_shape + (3,)),
+        Conv2D(32, (5, 5), activation='relu'),
+        MaxPooling2D(pool_size=pool_size),
+        Conv2D(64, (5, 5), activation='relu'),
+        MaxPooling2D(pool_size=pool_size),
+        Conv2D(128, (3, 3), activation='relu'),
+        MaxPooling2D(pool_size=pool_size),
+        Conv2D(256, (3, 3), activation='relu'),
+        Flatten(),
+        Dense(128, activation='relu'),
+        Dropout(0.5),
+        Dense(64, activation='relu'),
+        Dropout(0.5),
+        Dense(32, activation='relu'),
+        Dropout(0.5),
+        Dense(10, activation='relu'),
+        Dropout(0.5),
+        Dense(1, activation='sigmoid', name='output_speed')  # Output layer for 'speed'
+    ])
+
+    model_angle = Sequential([
+        Input(shape=image_shape + (3,)),
+        Conv2D(32, (5, 5), activation='relu'),
+        MaxPooling2D(pool_size=pool_size),
+        Conv2D(64, (5, 5), activation='relu'),
+        MaxPooling2D(pool_size=pool_size),
+        Conv2D(128, (3, 3), activation='relu'),
+        MaxPooling2D(pool_size=pool_size),
+        Conv2D(256, (3, 3), activation='relu'),
+        Flatten(),
+        Dense(128, activation='relu'),
+        Dropout(0.5),
+        Dense(64, activation='relu'),
+        Dropout(0.5),
+        Dense(32, activation='relu'),
+        Dropout(0.5),
+        Dense(10, activation='relu'),
+        Dropout(0.5),
+        Dense(1, activation='linear', name='output_angle')  # Output layer for 'angle'
+    ])
+
+    return model_speed, model_angle
+
+
