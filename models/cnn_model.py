@@ -178,6 +178,57 @@ def create_cnn_model_v3(image_shape, pool_size=(2, 2)):
     
     return model_speed, model_angle
 
+
+def create_cnn_model_v4(input_shape, pool_size=(2, 2)):
+    """
+    Creates two CNN models (for speed and angle prediction) with the specified input shape.
+    """
+
+    # Model for speed prediction
+    model_speed = Sequential([
+        Conv2D(24, (5, 5), activation='relu', input_shape=input_shape),
+        MaxPooling2D(pool_size),
+        Conv2D(36, (5, 5), activation='relu'),
+        MaxPooling2D(),
+        Conv2D(48, (5, 5), activation='relu'),
+        MaxPooling2D(pool_size),
+        Conv2D(64, (3, 3), activation='relu'),
+        Conv2D(64, (3, 3), activation='relu'),
+        MaxPooling2D(pool_size),
+        Flatten(),
+        Dense(100, activation='relu'),
+        Dropout(0.5),
+        Dense(50, activation='relu'),
+        Dropout(0.5),
+        Dense(10, activation='relu'),
+        Dense(1, activation='sigmoid', name='output_speed')  # Output layer for 'speed'
+    ], name='model_speed')
+
+    # Model for angle prediction
+    model_angle = Sequential([
+        Conv2D(24, (5, 5), activation='relu', input_shape=input_shape),
+        MaxPooling2D(pool_size),
+        Conv2D(36, (5, 5), activation='relu'),
+        MaxPooling2D(),
+        Conv2D(48, (5, 5), activation='relu'),
+        MaxPooling2D(pool_size),
+        Conv2D(64, (3, 3), activation='relu'),
+        Conv2D(64, (3, 3), activation='relu'),
+        MaxPooling2D(pool_size),
+        Flatten(),
+        Dense(100, activation='relu'),
+        Dropout(0.5),
+        Dense(50, activation='relu'),
+        Dropout(0.5),
+        Dense(10, activation='relu'),
+        Dense(1, activation='linear', name='output_angle')  # Output layer for 'angle'
+    ], name='model_angle')
+
+    # Compile the model for angle prediction with mean squared error loss and an optimizer of choice
+    model_angle.compile(optimizer='adam', loss='mse')
+
+    return model_speed, model_angle
+
 ############################################################################################################
 
 #image_shape = (int(240/2), int(320/2)) # Half the real size of the image.

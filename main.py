@@ -20,6 +20,7 @@ def train(dataset_path, model, output_label, epochs):
                                                                                                                 eval_split,
                                                                                                                 train_val_split)
 
+
     if output_label == "speed":
         model.compile(
             optimizer='Adam',
@@ -46,6 +47,7 @@ def train(dataset_path, model, output_label, epochs):
     training_images_directory = build_training_directory_img(dataset_path)
     train_data_generator = create_data_generator(training_images_directory, train_labels, batch_size, image_shape, output_label)
     val_data_generator = create_data_generator(training_images_directory, val_labels, batch_size, image_shape, output_label)
+
     history = model.fit(
         train_data_generator,
         epochs=epochs,
@@ -111,20 +113,24 @@ def plot_loss(history1, history2):
     plt.tight_layout()
     plt.show()
 
+def train_test_model(dataset_path, model, output_label, epochs):
+    history = train(dataset_path ,model, output_label, epochs)
+    test_cnn_model( model, dataset_path, image_shape, output_label)
+    return history
+
 # Call the training function
 if __name__ == '__main__':
 
     # DATA HYPERPARAMETERS
     batch_size = 128    # Use 32 for training.
     # image_shape = (int(240/2), int(320/2)) # Half the real size of the image.
-    image_shape = (100,100)
+    image_shape = (120,120)
     eval_split = 0.1
     train_val_split = [0.8, 0.2] # [training_set %, valuation_set %]
-    output_label = "speed"
 
     # TRAINING HYPERPARAMETERS 
     learning_rate = 0.001  # Specify your desired learning rate~ 
-    epochs = 4
+    epochs = 2
     logging = True # Set to True, the training process might log various metrics (such as loss and accuracy) for visualization and analysis using TensorBoard.
     pool_size=(2, 2)
 
@@ -133,19 +139,15 @@ if __name__ == '__main__':
     dataset_path = get_dataset_path()
 
     load_test_images(dataset_path, image_shape)
-
-       
-    
     # Create the models
     model_speed, model_angle = create_cnn_model_v3(image_shape, pool_size)
-
-    history_speed = train(dataset_path ,model_speed, "speed", epochs)
-    hystory_angle = train(dataset_path ,model_speed, "angle", epochs)
-  
-
-    test_cnn_model( model_speed, dataset_path, image_shape, output_label = 'speed')
-    test_cnn_model( model_angle, dataset_path, image_shape, output_label = 'angle')
+    # Train the models using training data. Test the models on the test image data
+    history_speed = train_test_model(dataset_path, model_speed, "speed", epochs)
+    history_angle = train_test_model(dataset_path, model_angle, "angle", epochs)
+       
+    # Plot the models. If is just one model train-test then use plot_loss_single. If both models trained and test, then use plot_loss.
     #plot_loss_single(history_speed)
-    plot_loss(history_speed, hystory_angle)
+    #plot_loss_single(history_angle)
+    plot_loss(history_speed, history_angle)
 
 
