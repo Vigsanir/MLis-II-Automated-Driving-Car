@@ -46,17 +46,25 @@ def test_cnn_model(model):
     results_df.to_csv('new_submission.csv', index=False)
 
 
-def train_cnn_model(X_train, y_train, epochs=100, batch_size=128, pool_size=(2, 2)):
+def train_cnn_model(X_train, y_train, epochs=2, batch_size=128, pool_size=(2, 2)):
+
+    print(f'BEFORE SPLIT: Type_X_train: {type(X_train)}. Type_Y_train: {type(y_train)}')
+
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1)
-    
+
+    print(f'AFTER SPLIT: Type_X_train: {type(X_train)}. Type_Y_train: {type(y_train)}')
+
     input_shape = X_train.shape[1:]
-    
+    print('SHAPE X_train: {input_shape}')
     #model = create_cnn_model(input_shape, pool_size)
     model = create_cnn_model(input_shape, pool_size)
     
     datagen = ImageDataGenerator(channel_shift_range=0.2)
+
+    print(f'Before: {datagen}')
     datagen.fit(X_train)
-    
+    print(f'After: {datagen}')
+
     model.compile(optimizer='Adam', loss='mean_squared_error')
     
     history = model.fit_generator(datagen.flow(X_train, y_train, batch_size=batch_size),
@@ -175,8 +183,11 @@ def plot_loss(history):
 if __name__ == "__main__":
     training_images, labels = load_and_preprocess_data()
     print(labels)
-    model1, history1, model2, history2 = train_cnn_model_v2(training_images, labels)
-    test_cnn_model(model1)
-    test_cnn_model(model2)
-    plot_loss(history1)
-    plot_loss(history2)
+    model, history = train_cnn_model(training_images, labels)
+    test_cnn_model(model)
+    plot_loss(history)
+   ## model1, history1, model2, history2 = train_cnn_model_v2(training_images, labels)
+   ## test_cnn_model(model1)
+  ##  test_cnn_model(model2)
+   ## plot_loss(history1)
+  ##  plot_loss(history2)

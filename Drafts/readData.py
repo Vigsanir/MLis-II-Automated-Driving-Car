@@ -16,7 +16,9 @@ LOCAL_DEBUG_MODE_SHOW_IMG = False
 
 def construct_paths():
     # Get the script directory
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+   # script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_dir = 'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans'
+
 
     # Define relative paths
     training_data_relative_path = "machine-learning-in-science-ii-2024/training_data/training_data"
@@ -131,5 +133,5 @@ if LOCAL_DEBUG_MODE:
 training_data_dir, training_labels_path, _, _ = construct_paths()
     
     # Load the CSV file into a Pandas DataFrame
-labels_df = pd.read_csv("new_submission.csv")
-print(labels_df)
+#labels_df = pd.read_csv("new_submission.csv")
+#print(labels_df)
