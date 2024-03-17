@@ -66,7 +66,7 @@ class CustomDataGenerator(Sequence):
         indices = self.indexes[index * self.batch_size: (index + 1) * self.batch_size]
         batch_df = self.labels_df.iloc[indices]
         batch_labels = batch_df[self.output_label].values
-        batch_paths = [f"{self.input_path}{filename}.png" for filename in batch_df['image_id'].values]
+        batch_paths = [f"{self.input_path}/{filename}.png" for filename in batch_df['image_id'].values]
 
         batch_images = []
         for path in batch_paths:
@@ -104,6 +104,7 @@ def get_dataset_path():
     else:
         # Running in a standalone Python script
         return f'{Path(__file__).parent}/test_images'
+
 
 def construct_images_path(directory_with_images):
     filenames = os.listdir(directory_with_images) 
@@ -165,64 +166,67 @@ def test_batch(batch_images, batch_labels, output_label):
         print(f"Image {i+1}: Bit Value: {bit_value}, {output_label} Label: {label}")
 
 
-print(get_dataset_path())   
-file_paths = construct_images_path(get_dataset_path())
-print(file_paths)
-#  class: list
-#['C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/1.png',
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/10.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/11.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/12.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/13.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/14.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/15.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/16.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/2.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/3.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/4.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/5.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/6.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/7.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/8.png', 
-#'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/9.png']
-training_labels = get_csv_labels(get_dataset_path())
-print(training_labels)
-#type pandas.core.frame.DataFrame:
-#    image_id  angle  speed
-#0          1     21     11
-#1          2     22     12
-#2          3     23     13
-#3          4     24     14
-#4          5     25     15
-#5          6     26     16
-#6          7     27     17
-#7          8     28     18
-#8          9     29     19
-#9         10     30     20
-#10        11     31     21
-#11        12     32     22
-#12        13     33     23
-#13        14     34     24
-#14        15     35     25
-#15        16     36     26
-
-
-# Create data generator
-batch_size = 9 #2 
-image_shape = (2, 2, 3)  # 2x2 pixels, RGB
-output_label = 'angle'
-augmentations = None
-directory_img= 'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/'
-data_generator = create_data_generator(directory_img, training_labels, batch_size, image_shape, output_label)
-
-epochs = 1
-for epoch in range(epochs):
-    
-    print(f'EPOCH {epoch + 1}')
-    data_generator.on_epoch_end()  # Reset the generator at the end of each epoch
-    # Iterate over the data generator to get batches
-    for batch_images, batch_labels in data_generator:
-        print("Batch images shape:", batch_images.shape)
-        print("Batch labels shape:", batch_labels.shape)
-       # print('AAAAAAAAAAAAAAAAAAA', batch_labels)
-        test_batch(batch_images, batch_labels, output_label)
+        ############################################################################################################
+#print(get_dataset_path())   
+#file_paths = construct_images_path(get_dataset_path())
+#print(file_paths)
+##  class: list
+##['C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/1.png',
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/10.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/11.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/12.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/13.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/14.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/15.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/16.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/2.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/3.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/4.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/5.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/6.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/7.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/8.png', 
+##'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/test_images/9.png']
+#training_labels = get_csv_labels(get_dataset_path())
+#print(training_labels)
+##type pandas.core.frame.DataFrame:
+##    image_id  angle  speed
+##0          1     21     11
+##1          2     22     12
+##2          3     23     13
+##3          4     24     14
+##4          5     25     15
+##5          6     26     16
+##6          7     27     17
+##7          8     28     18
+##8          9     29     19
+##9         10     30     20
+##10        11     31     21
+##11        12     32     22
+##12        13     33     23
+##13        14     34     24
+##14        15     35     25
+##15        16     36     26
+#
+#
+## Create data generator
+#batch_size = 8 #2 
+#image_shape = (2, 2, 3)  # 2x2 pixels, RGB
+#output_label = 'angle'
+#augmentations = None
+#
+#directory_img= 'C:\\Users\\Petru.Sacaleanu\\source\\repos\\MLis-II - The Balcans/CustomDataGenerator/test_images/'
+#data_generator = create_data_generator(directory_img, training_labels, batch_size, image_shape, output_label)
+#
+#epochs = 2
+#for epoch in range(epochs):
+#    
+#    print(f'EPOCH {epoch + 1}')
+#    data_generator.on_epoch_end()  # Reset the generator at the end of each epoch
+#    # Iterate over the data generator to get batches
+#    for batch_images, batch_labels in data_generator:
+#        print("Batch images shape:", batch_images.shape)
+#        print("Batch labels shape:", batch_labels.shape)
+#       # print('AAAAAAAAAAAAAAAAAAA', batch_labels)
+#        test_batch(batch_images, batch_labels, output_label)
+############################################################################################################

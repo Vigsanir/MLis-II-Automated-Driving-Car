@@ -1,8 +1,151 @@
 # main.py
-import train
-from utils.preprocessing import load_and_preprocess_images
-from models.cnn_model import create_cnn_model
+
+from preprocesing import get_dataset_path, preprocess_dataset, build_training_validation_and_evaluation_sets, build_training_directory_img, load_test_images
+from CustomDataGenerator.CustomDataGenerator import create_data_generator
+from models.cnn_model import create_cnn_model, create_cnn_model_v2, create_cnn_model_v3
+from tensorflow.keras.losses import BinaryCrossentropy, MeanSquaredError
+from tensorflow.keras.metrics import BinaryAccuracy, Precision, Recall, AUC, MeanSquaredError, MeanAbsoluteError
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+
+
+def train(dataset_path, model, output_label, epochs):
+    image_paths, data_labels = preprocess_dataset(dataset_path)
+    train_set, val_set, _, _, train_labels, val_labels, _, _ = build_training_validation_and_evaluation_sets(image_paths,
+                                                                                                                data_labels,
+                                                                                                                image_shape,
+                                                                                                                batch_size,
+                                                                                                                eval_split,
+                                                                                                                train_val_split)
+
+    if output_label == "speed":
+        model.compile(
+            optimizer='Adam',
+            loss='binary_crossentropy',  # for binary classification
+            metrics=[
+                BinaryAccuracy(name='accuracy'),
+                Precision(name='precision'),
+                Recall(name='recall'),
+                AUC(name='auc'),
+                MeanSquaredError(name='mse'),
+                MeanAbsoluteError(name='mae')
+            ]
+        )
+    else:
+        model.compile(
+            optimizer='Adam',
+            loss='mean_squared_error',  # for regression
+            metrics=[
+                MeanSquaredError(name='mse'),
+                MeanAbsoluteError(name='mae')
+            ]
+        )
+
+    training_images_directory = build_training_directory_img(dataset_path)
+    train_data_generator = create_data_generator(training_images_directory, train_labels, batch_size, image_shape, output_label)
+    val_data_generator = create_data_generator(training_images_directory, val_labels, batch_size, image_shape, output_label)
+    history = model.fit(
+        train_data_generator,
+        epochs=epochs,
+        validation_data=val_data_generator,
+        verbose=1  # Set verbose to 0 to disable the default progress bar
+    )
+
+    # Save the compiled model and trained.
+    model.trainable = False
+    model.save(f'full_CNN_model_{output_label}_trained.h5')
+
+    return history
+
+
+
+def test_cnn_model( model, dataset_path, target_size = (int(240/2), int(320/2)), output_label = 'speed'):
+    # Load test data
+    test_images, image_ids = load_test_images(dataset_path, target_size)
+
+    # Make predictions using the trained model
+
+    predictions  = model.predict(test_images)
+
+    print(f" Prediction {output_label}: {predictions }")
+    # Flatten the nested lists
+  
+    flat_predictions = [item for sublist in predictions for item in sublist]
+    # Create a DataFrame with image IDs and predictions
+    results_df = pd.DataFrame({'image_id': image_ids, f'{output_label}': flat_predictions})
+    print(results_df)
+     # Save the results DataFrame to the new submission file
+    results_df.to_csv(f'Test_submission_{output_label}.csv', index=False)
+
+def plot_loss_single(history):
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend(['Train', 'Validation'], loc='upper right')
+    plt.show()
+
+    
+def plot_loss(history1, history2):
+    fig, axs = plt.subplots(1, 2, figsize=(15, 5))
+
+    # Plot loss for history1
+    axs[0].plot(history1.history['loss'], label='Train')
+    axs[0].plot(history1.history['val_loss'], label='Validation')
+    axs[0].set_title('Model Loss (History 1)')
+    axs[0].set_xlabel('Epoch')
+    axs[0].set_ylabel('Loss')
+    axs[0].legend(loc='upper right')
+
+    # Plot loss for history2
+    axs[1].plot(history2.history['loss'], label='Train')
+    axs[1].plot(history2.history['val_loss'], label='Validation')
+    axs[1].set_title('Model Loss (History 2)')
+    axs[1].set_xlabel('Epoch')
+    axs[1].set_ylabel('Loss')
+    axs[1].legend(loc='upper right')
+
+    plt.tight_layout()
+    plt.show()
 
 # Call the training function
 if __name__ == '__main__':
-    train.train_model()
+
+    # DATA HYPERPARAMETERS
+    batch_size = 128    # Use 32 for training.
+    # image_shape = (int(240/2), int(320/2)) # Half the real size of the image.
+    image_shape = (100,100)
+    eval_split = 0.1
+    train_val_split = [0.8, 0.2] # [training_set %, valuation_set %]
+    output_label = "speed"
+
+    # TRAINING HYPERPARAMETERS 
+    learning_rate = 0.001  # Specify your desired learning rate~ 
+    epochs = 4
+    logging = True # Set to True, the training process might log various metrics (such as loss and accuracy) for visualization and analysis using TensorBoard.
+    pool_size=(2, 2)
+
+ 
+
+    dataset_path = get_dataset_path()
+
+    load_test_images(dataset_path, image_shape)
+
+       
+    
+    # Create the models
+    model_speed, model_angle = create_cnn_model_v3(image_shape, pool_size)
+
+    history_speed = train(dataset_path ,model_speed, "speed", epochs)
+    hystory_angle = train(dataset_path ,model_speed, "angle", epochs)
+  
+
+    test_cnn_model( model_speed, dataset_path, image_shape, output_label = 'speed')
+    test_cnn_model( model_angle, dataset_path, image_shape, output_label = 'angle')
+    #plot_loss_single(history_speed)
+    plot_loss(history_speed, hystory_angle)
+
+
