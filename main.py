@@ -2,11 +2,12 @@
 
 from preprocesing import get_dataset_path, preprocess_dataset, build_training_validation_and_evaluation_sets, build_training_directory_img, load_test_images
 from CustomDataGenerator.CustomDataGenerator import create_data_generator
-from models.cnn_model import create_cnn_model, create_cnn_model_v2, create_cnn_model_v3
-from tensorflow.keras.losses import BinaryCrossentropy, MeanSquaredError
-from tensorflow.keras.metrics import BinaryAccuracy, Precision, Recall, AUC, MeanSquaredError, MeanAbsoluteError
+from models.cnn_model import create_cnn_model, create_cnn_model_v2, create_cnn_model_v3, create_cnn_model_v4
+from tensorflow.python.keras.losses import BinaryCrossentropy, MeanSquaredError
+from tensorflow.python.keras.metrics import BinaryAccuracy, Precision, Recall, AUC, MeanSquaredError, MeanAbsoluteError
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 
 
@@ -28,7 +29,7 @@ def train(dataset_path, model, output_label, epochs):
             metrics=[
                 BinaryAccuracy(name='accuracy'),
                 Precision(name='precision'),
-                Recall(name='recall'),
+                Recall(name='recall'),  
                 AUC(name='auc'),
                 MeanSquaredError(name='mse'),
                 MeanAbsoluteError(name='mae')
@@ -54,16 +55,18 @@ def train(dataset_path, model, output_label, epochs):
         validation_data=val_data_generator,
         verbose=1  # Set verbose to 0 to disable the default progress bar
     )
-
+      # Get the current date
+    current_date = datetime.now().strftime("%m-%d_%H-%M-%S")
     # Save the compiled model and trained.
     model.trainable = False
-    model.save(f'full_CNN_model_{output_label}_trained.h5')
+
+    model.save(f'full_CNN_model_{output_label}_trained_{current_date}.h5')
 
     return history
 
 
 
-def test_cnn_model( model, dataset_path, target_size = (int(240/2), int(320/2)), output_label = 'speed'):
+def test_cnn_model( model, dataset_path, target_size, output_label ):
     # Load test data
     test_images, image_ids = load_test_images(dataset_path, target_size)
 
@@ -78,6 +81,11 @@ def test_cnn_model( model, dataset_path, target_size = (int(240/2), int(320/2)),
     # Create a DataFrame with image IDs and predictions
     results_df = pd.DataFrame({'image_id': image_ids, f'{output_label}': flat_predictions})
     print(results_df)
+     # Get the current date
+    current_date = datetime.now().strftime("%m-%d_%H-%M-%S")
+     # Save the results DataFrame to the new submission file with current date
+    results_df.to_csv(f'Test_submission_{output_label}_{current_date}.csv', index=False)
+
      # Save the results DataFrame to the new submission file
     results_df.to_csv(f'Test_submission_{output_label}.csv', index=False)
 
@@ -140,7 +148,7 @@ if __name__ == '__main__':
 
     load_test_images(dataset_path, image_shape)
     # Create the models
-    model_speed, model_angle = create_cnn_model_v3(image_shape, pool_size)
+    model_speed, model_angle = create_cnn_model_v4(image_shape, pool_size)
     # Train the models using training data. Test the models on the test image data
     history_speed = train_test_model(dataset_path, model_speed, "speed", epochs)
     history_angle = train_test_model(dataset_path, model_angle, "angle", epochs)

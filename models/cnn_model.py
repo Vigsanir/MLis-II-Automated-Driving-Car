@@ -186,6 +186,7 @@ def create_cnn_model_v4(input_shape, pool_size=(2, 2)):
 
     # Model for speed prediction
     model_speed = Sequential([
+        Input(shape=input_shape + (3,), name='input_speed'),
         Conv2D(24, (5, 5), activation='relu', input_shape=input_shape),
         MaxPooling2D(pool_size),
         Conv2D(36, (5, 5), activation='relu'),
@@ -206,6 +207,7 @@ def create_cnn_model_v4(input_shape, pool_size=(2, 2)):
 
     # Model for angle prediction
     model_angle = Sequential([
+        Input(shape=input_shape + (3,), name='input_angle'),
         Conv2D(24, (5, 5), activation='relu', input_shape=input_shape),
         MaxPooling2D(pool_size),
         Conv2D(36, (5, 5), activation='relu'),
@@ -223,6 +225,9 @@ def create_cnn_model_v4(input_shape, pool_size=(2, 2)):
         Dense(10, activation='relu'),
         Dense(1, activation='linear', name='output_angle')  # Output layer for 'angle'
     ], name='model_angle')
+
+
+
 
     # Compile the model for angle prediction with mean squared error loss and an optimizer of choice
     model_angle.compile(optimizer='adam', loss='mse')

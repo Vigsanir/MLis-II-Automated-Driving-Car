@@ -167,13 +167,15 @@ def remove_invalid_speed_data(dataset_directory, data_labels, image_paths):
     # Return cleaned DataFrame and corresponding image paths
     return valid_speed_rows, cleaned_image_paths
 
-def load_test_images(dataset_path, image_size=(200, 200)):
+
+def load_test_images(dataset_path, image_size):
     test_images = []
     image_ids = []
     test_data_dir = build_test_directory_img(dataset_path)
     for filename in os.listdir(test_data_dir):
         if filename.endswith(".png"):
             image_path = os.path.join(test_data_dir, filename)
+            print(image_path)
             img = Image.open(image_path)
             # Convert to RGB mode with 24-bit depth
             img = img.convert('RGB')
@@ -187,11 +189,14 @@ def load_test_images(dataset_path, image_size=(200, 200)):
             # Ensure the shape is (height, width, channels)
             if img_array.shape[-1] != 3:
                 img_array = np.transpose(img_array, (1, 0, 2))  # Swap height and width
+            
+            # Normalize the image array
+            img_array = img_array.astype(np.float32) / 255.0  # Scale pixel values to [0, 1]
 
             test_images.append(img_array)
             image_ids.append(filename.split(".")[0])  # Extracting the image ID from the filename
 
-    return np.array(test_images), image_ids
+    return np.array(test_images, dtype=np.float32), image_ids
 
 def plot_data_scatter(data_labels_cleaned2):
     # Create a figure and axes for subplots
@@ -294,6 +299,9 @@ def build_training_validation_and_evaluation_sets(train_image_paths, data_labels
         #stratify=data_labels['speed'] # We want to make sure that we have similar distribution of of the target variable ('speed') 
                                       # is similar in both the training and validation sets.
     )
+
+    #print(f'VAL SET: {val_set}')
+    #print(f'VAL LABELS{val_labels}')
   
     # Split validation set into evaluation sets for speed and angle
     eval_set_speed, eval_set_angle, eval_labels_speed, eval_labels_angle = train_test_split(
