@@ -1,6 +1,7 @@
 # main.py
 
-from preprocesing import get_dataset_path, preprocess_dataset, build_training_validation_and_evaluation_sets, build_training_directory_img, load_test_images
+from pickle import TRUE
+from preprocesing import get_dataset_path, get_project_path, preprocess_dataset, build_training_validation_and_evaluation_sets, build_training_directory_img, load_test_images
 from CustomDataGenerator.CustomDataGenerator import create_data_generator
 from models.cnn_model import create_cnn_model, create_cnn_model_v2, create_cnn_model_v3, create_cnn_model_v4
 from tensorflow.python.keras.losses import BinaryCrossentropy, MeanSquaredError
@@ -9,18 +10,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 import os
+from keras.models import load_model
 
 
 
-def train(dataset_path, model, output_label, epochs, directory='trained_models'):
-    image_paths, data_labels = preprocess_dataset(dataset_path)
-    train_set, val_set, _, _, train_labels, val_labels, _, _ = build_training_validation_and_evaluation_sets(image_paths,
-                                                                                                                data_labels,
-                                                                                                                image_shape,
-                                                                                                                batch_size,
-                                                                                                                eval_split,
-                                                                                                                train_val_split)
-
+def compile_model(model, output_label):
 
     if output_label == "speed":
         model.compile(
@@ -44,6 +38,20 @@ def train(dataset_path, model, output_label, epochs, directory='trained_models')
                 MeanAbsoluteError(name='mae')
             ]
         )
+    return model
+
+
+
+def train(dataset_path, model, image_shape, output_label, epochs, directory='trained_models'):
+    image_paths, data_labels = preprocess_dataset(dataset_path)
+    train_set, val_set, _, _, train_labels, val_labels, _, _ = build_training_validation_and_evaluation_sets(image_paths,
+                                                                                                                data_labels,
+                                                                                                                image_shape,
+                                                                                                                batch_size,
+                                                                                                                eval_split,
+                                                                                                                train_val_split)
+
+    model = compile_model(model, output_label)    
 
     training_images_directory = build_training_directory_img(dataset_path)
     train_data_generator = create_data_generator(training_images_directory, train_labels, batch_size, image_shape, output_label)
@@ -67,9 +75,9 @@ def train(dataset_path, model, output_label, epochs, directory='trained_models')
 
 
 
-def test_cnn_model( model, dataset_path, target_size, output_label, directory='predictions_submision' ):
+def test_cnn_model(dataset_path, model, image_shape, output_label, directory='predictions_submision' ):
     # Load test data
-    test_images, image_ids = load_test_images(dataset_path, target_size)
+    test_images, image_ids = load_test_images(dataset_path, image_shape)
 
     # Make predictions using the trained model
 
@@ -141,10 +149,12 @@ def plot_loss(history1, history2, epochs, directory='plots'):
 
     plt.show()
 
-def train_test_model(dataset_path, model, output_label, epochs):
-    history = train(dataset_path ,model, output_label, epochs)
-    test_cnn_model( model, dataset_path, image_shape, output_label)
+def train_test_model(dataset_path, model, output_label, epochs, image_shape):
+    history = train(dataset_path ,model, image_shape, output_label, epochs)
+    test_cnn_model(dataset_path, model, image_shape, output_label)
     return history
+
+
 
 # Call the training function
 if __name__ == '__main__':
@@ -158,24 +168,45 @@ if __name__ == '__main__':
 
     # TRAINING HYPERPARAMETERS 
     learning_rate = 0.001  # Specify your desired learning rate~ 
-    epochs = 1
+    epochs = 2
     logging = True # Set to True, the training process might log various metrics (such as loss and accuracy) for visualization and analysis using TensorBoard.
     pool_size=(2, 2)
 
- 
+    FIRST_TRAIN_FLAG = False  # SET TRUE if it is the first train. False if want to continue training a model. Update with model paths
+    MODEL_SPEED_FLAG = True  # SET TRUE if want to train the SPEED model
+    MODEL_ANGLE_FLAG = True  # SET TRUE if want to train the ANGLE model
+
 
     dataset_path = get_dataset_path()
 
-    load_test_images(dataset_path, image_shape)
-    # Create the models
-    model_speed, model_angle = create_cnn_model_v4(image_shape, pool_size)
-    # Train the models using training data. Test the models on the test image data
-    history_speed = train_test_model(dataset_path, model_speed, "speed", epochs)
-    history_angle = train_test_model(dataset_path, model_angle, "angle", epochs)
-       
-    # Plot the models. If is just one model train-test then use plot_loss_single. If both models trained and test, then use plot_loss.
-    # plot_loss_single(history_speed, "speed", epochs )
-    # plot_loss_single(history_angle, "angle", epochs)
-    plot_loss(history_speed, history_angle, epochs)
+    if FIRST_TRAIN_FLAG:
+        # Create and train the models
+        model_speed, model_angle = create_cnn_model_v4(image_shape, pool_size)
+        if MODEL_SPEED_FLAG:
+            history_speed = train_test_model(dataset_path, model_speed, "speed", epochs, image_shape)
+        if MODEL_ANGLE_FLAG:
+            history_angle = train_test_model(dataset_path, model_angle, "angle", epochs, image_shape)
+    else:   
+        project_path = get_project_path()
+        if MODEL_SPEED_FLAG:
+            model_path_speed = f'{project_path}/trained_models/03-18_23-10_CNN_model_speed_epochs200.h5'  # Update with speed model path
+            model = load_model(model_path_speed)
+                        # Unfreeze all layers for training
+            model.trainable = True
+            history_speed = train_test_model(dataset_path, model, "speed", epochs, image_shape)
+
+        if MODEL_ANGLE_FLAG:
+            model_path_angle = f'{project_path}/trained_models/03-19_07-25_CNN_model_angle_epochs400.h5'  # Update with angle model path
+            model = load_model(model_path_angle)
+            # Unfreeze all layers for training
+            model.trainable = True
+            history_angle = train_test_model(dataset_path, model, "angle", epochs, image_shape)
+
+    if MODEL_SPEED_FLAG:
+        plot_loss_single(history_speed, "speed", epochs)
+    if MODEL_ANGLE_FLAG:
+        plot_loss_single(history_angle, "angle", epochs)
+    if MODEL_SPEED_FLAG and MODEL_ANGLE_FLAG:
+        plot_loss(history_speed, history_angle, epochs)
 
 

@@ -15,6 +15,15 @@ def get_dataset_path():
         # Running in a standalone Python script
         return f"{Path(__file__).parent}/machine-learning-in-science-ii-2024"
 
+def get_project_path():
+    # Check if running in Kaggle
+    if 'KAGGLE_KERNEL_RUN_TYPE' in os.environ:
+        # Running in Kaggle kernel
+        return '/kaggle/input/'
+    else:
+        # Running in a standalone Python script
+        return str(Path.cwd())  # Returns the current working directory
+
 def build_training_directory_img(dataset_directory):
     return f"{dataset_directory}/training_data/training_data"
 
