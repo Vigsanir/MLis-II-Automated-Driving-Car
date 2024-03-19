@@ -8,11 +8,11 @@ from tensorflow.python.keras.metrics import BinaryAccuracy, Precision, Recall, A
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
+import os
 
 
 
-
-def train(dataset_path, model, output_label, epochs):
+def train(dataset_path, model, output_label, epochs, directory='trained_models'):
     image_paths, data_labels = preprocess_dataset(dataset_path)
     train_set, val_set, _, _, train_labels, val_labels, _, _ = build_training_validation_and_evaluation_sets(image_paths,
                                                                                                                 data_labels,
@@ -56,17 +56,18 @@ def train(dataset_path, model, output_label, epochs):
         verbose=1  # Set verbose to 0 to disable the default progress bar
     )
       # Get the current date
-    current_date = datetime.now().strftime("%m-%d_%H-%M-%S")
+    current_date = datetime.now().strftime("%m-%d_%H-%M")
     # Save the compiled model and trained.
     model.trainable = False
-
-    model.save(f'full_CNN_model_{output_label}_trained_{current_date}.h5')
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    model.save(os.path.join(directory, f'{current_date}_CNN_model_{output_label}_epochs{epochs}.h5'))
 
     return history
 
 
 
-def test_cnn_model( model, dataset_path, target_size, output_label ):
+def test_cnn_model( model, dataset_path, target_size, output_label, directory='predictions_submision' ):
     # Load test data
     test_images, image_ids = load_test_images(dataset_path, target_size)
 
@@ -82,30 +83,40 @@ def test_cnn_model( model, dataset_path, target_size, output_label ):
     results_df = pd.DataFrame({'image_id': image_ids, f'{output_label}': flat_predictions})
     print(results_df)
      # Get the current date
-    current_date = datetime.now().strftime("%m-%d_%H-%M-%S")
-     # Save the results DataFrame to the new submission file with current date
-    results_df.to_csv(f'Test_submission_{output_label}_{current_date}.csv', index=False)
+    current_date = datetime.now().strftime("%m-%d_%H-%M")
+    # Create the directory if it doesn't exist
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
-     # Save the results DataFrame to the new submission file
-    results_df.to_csv(f'Test_submission_{output_label}.csv', index=False)
+      # Save the results DataFrame to the new submission file with current date
+    results_df.to_csv(os.path.join(directory, f'{current_date}_prediction_{output_label}_test_epochs{epochs}.csv'))
 
-def plot_loss_single(history):
+def plot_loss_single(history, output_label,epochs, directory='plots'):
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
-    plt.title('Model Loss')
+    plt.title(f'Model Loss {output_label}')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend(['Train', 'Validation'], loc='upper right')
+
+    current_date = datetime.now().strftime("%m-%d_%H-%M")
+        # Create the directory if it doesn't exist
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    # Save the plot in the directory
+    plt.savefig(os.path.join(directory, f'{current_date}_Model_Loss_{output_label}_epochs{epochs}.png'))
+
     plt.show()
 
     
-def plot_loss(history1, history2):
+def plot_loss(history1, history2, epochs, directory='plots'):
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
 
     # Plot loss for history1
     axs[0].plot(history1.history['loss'], label='Train')
     axs[0].plot(history1.history['val_loss'], label='Validation')
-    axs[0].set_title('Model Loss (History 1)')
+    axs[0].set_title('Model Loss (History speed)')
     axs[0].set_xlabel('Epoch')
     axs[0].set_ylabel('Loss')
     axs[0].legend(loc='upper right')
@@ -113,12 +124,21 @@ def plot_loss(history1, history2):
     # Plot loss for history2
     axs[1].plot(history2.history['loss'], label='Train')
     axs[1].plot(history2.history['val_loss'], label='Validation')
-    axs[1].set_title('Model Loss (History 2)')
+    axs[1].set_title('Model Loss (History angle)')
     axs[1].set_xlabel('Epoch')
     axs[1].set_ylabel('Loss')
     axs[1].legend(loc='upper right')
 
     plt.tight_layout()
+
+    current_date = datetime.now().strftime("%m-%d_%H-%M")
+        # Create the directory if it doesn't exist
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    # Save the plot in the directory
+    plt.savefig(os.path.join(directory, f'{current_date}_Model_Loss_combined(S_A)_epochs{epochs}.png'))
+
     plt.show()
 
 def train_test_model(dataset_path, model, output_label, epochs):
@@ -138,7 +158,7 @@ if __name__ == '__main__':
 
     # TRAINING HYPERPARAMETERS 
     learning_rate = 0.001  # Specify your desired learning rate~ 
-    epochs = 2
+    epochs = 1
     logging = True # Set to True, the training process might log various metrics (such as loss and accuracy) for visualization and analysis using TensorBoard.
     pool_size=(2, 2)
 
@@ -154,8 +174,8 @@ if __name__ == '__main__':
     history_angle = train_test_model(dataset_path, model_angle, "angle", epochs)
        
     # Plot the models. If is just one model train-test then use plot_loss_single. If both models trained and test, then use plot_loss.
-    #plot_loss_single(history_speed)
-    #plot_loss_single(history_angle)
-    plot_loss(history_speed, history_angle)
+    # plot_loss_single(history_speed, "speed", epochs )
+    # plot_loss_single(history_angle, "angle", epochs)
+    plot_loss(history_speed, history_angle, epochs)
 
 

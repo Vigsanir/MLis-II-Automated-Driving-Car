@@ -175,7 +175,7 @@ def load_test_images(dataset_path, image_size):
     for filename in os.listdir(test_data_dir):
         if filename.endswith(".png"):
             image_path = os.path.join(test_data_dir, filename)
-            print(image_path)
+            # print(image_path)
             img = Image.open(image_path)
             # Convert to RGB mode with 24-bit depth
             img = img.convert('RGB')
