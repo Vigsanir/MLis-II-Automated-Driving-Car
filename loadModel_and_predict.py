@@ -31,9 +31,9 @@ def test_cnn_model(model_path, dataset_path, target_size, output_label):
 
 # Example usage
 dataset_path = get_dataset_path()
-model_path = 'full_CNN_model_angle_trained1703_200epochs.h5'  # Update with your model path
+model_path = '03-21_21-48_CNN_model_speed_epochs150.h5'  # Update with your model path
 dataset_path = get_dataset_path()  # Update with your test dataset directory
 target_size = (120,120)  # Update with your desired target size
-output_label = 'angle'  # Update with your desired output label
+output_label = 'speed'  # Update with your desired output label
 
 test_cnn_model(model_path, dataset_path, target_size, output_label)
