@@ -1,18 +1,37 @@
 # main.py
+# Standard library imports
+import os
+from datetime import datetime
 
-from pickle import TRUE
-from preprocesing import get_dataset_path, get_project_path, preprocess_dataset, build_training_validation_and_evaluation_sets, build_training_directory_img, load_test_images
-from CustomDataGenerator.CustomDataGenerator import create_data_generator
-from models.cnn_model import create_cnn_model, create_cnn_model_v2, create_cnn_model_v3, create_cnn_model_v4
-from tensorflow.python.keras.losses import BinaryCrossentropy, MeanSquaredError
-from tensorflow.python.keras.metrics import BinaryAccuracy, Precision, Recall, AUC, MeanSquaredError, MeanAbsoluteError
+# External library imports
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime
-import os
 from keras.models import load_model
+from pickle import TRUE
+from tensorflow.python.keras.losses import BinaryCrossentropy, MeanSquaredError
+from tensorflow.python.keras.metrics import BinaryAccuracy, Precision, Recall, AUC, MeanSquaredError, MeanAbsoluteError
 
-
+# Custom module imports
+from CustomDataGenerator.CustomDataGenerator import create_data_generator
+from models.cnn_model import (
+    create_cnn_model, 
+    create_cnn_model_v2, 
+    create_cnn_model_v3, 
+    create_cnn_model_v4
+)
+from evaluation_metrics import (
+    print_plot_classification_metrics, 
+    print_plot_regression_metrics
+)
+from preprocesing import (
+    get_dataset_path, 
+    get_project_path, 
+    preprocess_dataset, 
+    build_training_validation_and_evaluation_sets, 
+    build_training_directory_img, 
+    load_test_images, 
+    load_and_preprocess_images
+)
 
 def compile_model(model, output_label):
 
@@ -42,14 +61,7 @@ def compile_model(model, output_label):
 
 
 
-def train(dataset_path, model, image_shape, output_label, epochs, directory='trained_models'):
-    image_paths, data_labels = preprocess_dataset(dataset_path)
-    train_set, val_set, _, _, train_labels, val_labels, _, _ = build_training_validation_and_evaluation_sets(image_paths,
-                                                                                                                data_labels,
-                                                                                                                image_shape,
-                                                                                                                batch_size,
-                                                                                                                eval_split,
-                                                                                                                train_val_split)
+def train(dataset_path, train_labels, val_labels,  model, image_shape, output_label, epochs, directory='trained_models'):
 
     model = compile_model(model, output_label)    
 
@@ -75,9 +87,18 @@ def train(dataset_path, model, image_shape, output_label, epochs, directory='tra
 
 
 
-def test_cnn_model(dataset_path, model, image_shape, output_label, directory='predictions_submision' ):
-    # Load test data
-    test_images, image_ids = load_test_images(dataset_path, image_shape)
+def test_cnn_model(dataset_path, model, image_shape, output_label,DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, epochs, directory='predictions_submision' ):
+
+    if DATA_SPLIT_TO_EVALUATE_FLAG:
+        # Load and preprocess images
+        [Test_set_path, Test_labels] = evaluate_df
+        test_images = load_and_preprocess_images(Test_set_path, [image_shape[1], image_shape[0]])
+        image_ids = Test_labels['image_id']
+        y_true = Test_labels[output_label]
+    else:
+        # Load test data
+        test_images, image_ids = load_test_images(dataset_path, [image_shape[1], image_shape[0]])
+        y_true = None
 
     # Make predictions using the trained model
 
@@ -96,8 +117,13 @@ def test_cnn_model(dataset_path, model, image_shape, output_label, directory='pr
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-      # Save the results DataFrame to the new submission file with current date
-    results_df.to_csv(os.path.join(directory, f'{current_date}_prediction_{output_label}_test_epochs{epochs}.csv'))
+    if DATA_SPLIT_TO_EVALUATE_FLAG:
+                  # Save the results DataFrame to the new submission file with current date
+        results_df.to_csv(os.path.join(directory, f'{current_date}_prediction_4EVAL_{output_label}_test_epochs{epochs}.csv'))
+    else:
+        # Save the results DataFrame to the new submission file with current date
+        results_df.to_csv(os.path.join(directory, f'{current_date}_prediction_{output_label}_test_epochs{epochs}.csv'))
+    return results_df, y_true
 
 def plot_loss_single(history, output_label,epochs, directory='plots'):
     plt.plot(history.history['loss'])
@@ -116,9 +142,13 @@ def plot_loss_single(history, output_label,epochs, directory='plots'):
     plt.savefig(os.path.join(directory, f'{current_date}_Model_Loss_{output_label}_epochs{epochs}.png'))
 
     plt.show()
+ 
+
+    # Close the current figure
+    plt.close()
 
     
-def plot_loss(history1, history2, epochs, directory='plots'):
+def plot_loss(history1, history2, epochs_speed, epochs_angle , directory='plots'):
     fig, axs = plt.subplots(1, 2, figsize=(15, 5))
 
     # Plot loss for history1
@@ -138,21 +168,41 @@ def plot_loss(history1, history2, epochs, directory='plots'):
     axs[1].legend(loc='upper right')
 
     plt.tight_layout()
-
+     
     current_date = datetime.now().strftime("%m-%d_%H-%M")
         # Create the directory if it doesn't exist
     if not os.path.exists(directory):
         os.makedirs(directory)
-    
+    epochs = max(epochs_speed, epochs_angle)
     # Save the plot in the directory
     plt.savefig(os.path.join(directory, f'{current_date}_Model_Loss_combined(S_A)_epochs{epochs}.png'))
 
     plt.show()
 
-def train_test_model(dataset_path, model, output_label, epochs, image_shape):
-    history = train(dataset_path ,model, image_shape, output_label, epochs)
-    test_cnn_model(dataset_path, model, image_shape, output_label)
-    return history
+
+    # Close the current figure
+    plt.close()
+
+def print_split_data(X_train, X_val, y_train, y_val):
+    # Display some samples from the training and validation sets
+    print("\nSample from X Training set:")
+    for sample in X_train[:3]:
+        print(sample)
+
+    print("\nSample from Y Training set:")
+    print(y_train[:3])
+
+    print("\nSample from X Validation set:")
+    for sample in X_val[:3]:
+        print(sample)
+
+    print("\nSample from Y Validation set:")
+    print(y_val[:3])
+
+def train_test_model(dataset_path, train_labels, val_labels, model, output_label, epochs, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df):
+    history = train(dataset_path, train_labels, val_labels, model, image_shape, output_label, epochs)
+    predicted_values, y_true = test_cnn_model(dataset_path, model, image_shape, output_label, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, epochs)
+    return history, predicted_values, y_true
 
 
 
@@ -161,52 +211,87 @@ if __name__ == '__main__':
 
     # DATA HYPERPARAMETERS
     batch_size = 128    # Use 32 for training.
-    # image_shape = (int(240/2), int(320/2)) # Half the real size of the image.
-    image_shape = (120,120)
-    eval_split = 0.1
-    train_val_split = [0.8, 0.2] # [training_set %, valuation_set %]
+    image_shape = (120,120)     # [240, 320] real size of the image.
+    eval_split = 0.1    # Test_set %
+
+    train_val_split = 0.2 # [training and_validation_set %]
+
 
     # TRAINING HYPERPARAMETERS 
-    learning_rate = 0.001  # Specify your desired learning rate~ 
-    epochs = 2
+    learning_rate = 0.0001  # Specify your desired learning rate~ 
+    epochs = 1
+    epochs_speed = 50
+    epochs_angle = 100
     logging = True # Set to True, the training process might log various metrics (such as loss and accuracy) for visualization and analysis using TensorBoard.
     pool_size=(2, 2)
 
-    FIRST_TRAIN_FLAG = False  # SET TRUE if it is the first train. False if want to continue training a model. Update with model paths
+    FIRST_TRAIN_FLAG = False  # SET TRUE if it is the first train of the model. 
+                             # SET FALSE if want to continue training a model that has been trained in the past. Update with model paths
     MODEL_SPEED_FLAG = True  # SET TRUE if want to train the SPEED model
     MODEL_ANGLE_FLAG = True  # SET TRUE if want to train the ANGLE model
+    DATA_SPLIT_TO_EVALUATE_FLAG = False # SET TRUE if want to split the data for evaluation.
+
 
 
     dataset_path = get_dataset_path()
+    image_paths, data_labels = preprocess_dataset(dataset_path)
+
+    if DATA_SPLIT_TO_EVALUATE_FLAG:
+        TrainVal_set_path, Test_set_path, TrainVal_labels, Test_labels = build_training_validation_and_evaluation_sets(image_paths,
+                                                                                                                  data_labels,                                                                                                          
+                                                                                                                  eval_split)
+        print_split_data(TrainVal_set_path, Test_set_path, TrainVal_labels, Test_labels )
+
+        evaluate_df = [Test_set_path, Test_labels]
+
+    else:
+        TrainVal_set_path = image_paths
+        TrainVal_labels = data_labels
+        evaluate_df = [None, None]
+
+    X_train, X_val, train_labels, val_labels = build_training_validation_and_evaluation_sets(TrainVal_set_path,
+                                                                                               TrainVal_labels,
+                                                                                               train_val_split)
+
+    print_split_data(X_train, X_val, train_labels, val_labels)
 
     if FIRST_TRAIN_FLAG:
         # Create and train the models
         model_speed, model_angle = create_cnn_model_v4(image_shape, pool_size)
         if MODEL_SPEED_FLAG:
-            history_speed = train_test_model(dataset_path, model_speed, "speed", epochs, image_shape)
+            history_speed, predicted_speed, y_true_speed = train_test_model(dataset_path, train_labels, val_labels, model_speed, "speed", epochs_speed, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
         if MODEL_ANGLE_FLAG:
-            history_angle = train_test_model(dataset_path, model_angle, "angle", epochs, image_shape)
+            history_angle, predicted_angle, y_true_angle = train_test_model(dataset_path, train_labels, val_labels, model_angle, "angle", epochs_angle, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
     else:   
         project_path = get_project_path()
         if MODEL_SPEED_FLAG:
-            model_path_speed = f'{project_path}/trained_models/03-18_23-10_CNN_model_speed_epochs200.h5'  # Update with speed model path
+            model_path_speed = f'{project_path}/03-22_04-05_CNN_model_speed_epochs200+150+150.h5'  # Update with speed model path
             model = load_model(model_path_speed)
                         # Unfreeze all layers for training
             model.trainable = True
-            history_speed = train_test_model(dataset_path, model, "speed", epochs, image_shape)
+            history_speed, predicted_speed, y_true_speed = train_test_model(dataset_path, train_labels, val_labels, model, "speed", epochs_speed, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
 
         if MODEL_ANGLE_FLAG:
-            model_path_angle = f'{project_path}/trained_models/03-19_07-25_CNN_model_angle_epochs400.h5'  # Update with angle model path
+            model_path_angle = f'{project_path}/trained_models/03-22_13-57_CNN_model_angle_epochs400+150+350.h5'  # Update with angle model path
             model = load_model(model_path_angle)
             # Unfreeze all layers for training
             model.trainable = True
-            history_angle = train_test_model(dataset_path, model, "angle", epochs, image_shape)
+            history_angle, predicted_angle, y_true_angle = train_test_model(dataset_path, train_labels, val_labels, model, "angle", epochs_angle, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
 
-    if MODEL_SPEED_FLAG:
-        plot_loss_single(history_speed, "speed", epochs)
-    if MODEL_ANGLE_FLAG:
-        plot_loss_single(history_angle, "angle", epochs)
+    if MODEL_SPEED_FLAG == True and MODEL_ANGLE_FLAG == False:
+        if DATA_SPLIT_TO_EVALUATE_FLAG:
+            print_plot_classification_metrics(y_true_speed, predicted_speed)
+        plot_loss_single(history_speed, "speed", epochs_speed)
+
+    if MODEL_SPEED_FLAG == False and MODEL_ANGLE_FLAG == True:
+        if DATA_SPLIT_TO_EVALUATE_FLAG:
+            print_plot_regression_metrics(y_true_angle, predicted_angle)
+        plot_loss_single(history_angle, "angle", epochs_angle)
+
     if MODEL_SPEED_FLAG and MODEL_ANGLE_FLAG:
-        plot_loss(history_speed, history_angle, epochs)
+        if DATA_SPLIT_TO_EVALUATE_FLAG:
+            print_plot_classification_metrics(y_true_speed, predicted_speed)
+            print_plot_regression_metrics(y_true_angle, predicted_angle)
+        plot_loss(history_speed, history_angle, epochs_speed, epochs_angle )
 
 

@@ -6,7 +6,6 @@ import pandas as pd
 import itertools
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, mean_absolute_error, mean_squared_error, r2_score
-import time
 
 def save_figure_and_data(figure, data, filename):
     current_date = datetime.now().strftime("%m-%d_%H-%M")
@@ -105,9 +104,6 @@ def plot_classification_metrics(y_true, y_pred):
     # Save plot
     save_figure_and_data(fig, cm, "confusion_matrix")
 
-    # Wait for 2 seconds
-    time.sleep(2)
-
     # Close the current figure
     plt.close()
 
@@ -186,9 +182,7 @@ def plot_regression_metrics(y_true, y_pred, metrics):
 
     # Save plot
     save_figure_and_data(fig, (y_true, y_pred_angle, residual), "regression_plots")
-    # Wait for 2 seconds
-    time.sleep(2)
-
+  
     # Close the current figure
     plt.close()
 
@@ -208,8 +202,8 @@ if TEST_FLAG:
 
     # Example classification metrics
     y_true_cls = [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0]
-    y_pred_cls = pd.DataFrame({'speed': [0.999159, 0.999798, 0.986208, 0.989418, 0.967128, 
-                                  0.780634, 0.940513, 0.990897, 0.936071, 0.936079]})
+    y_pred_cls = pd.DataFrame({'speed': [1, 0.999798, 0.986208, 0.989418, 0.967128, 
+                                  0.780634, 0.940513, 1, 0.936071, 0]})
     #y_true_cls = [0, 1, 1, 0, 1]
     #y_pred_cls = [0, 1, 1, 1, 0]
 
