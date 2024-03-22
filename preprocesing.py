@@ -162,8 +162,9 @@ def remove_invalid_speed_data(dataset_directory, data_labels, image_paths):
     # Extract the 'image_id' column from valid speed rows
     valid_image_ids = valid_speed_rows['image_id'].tolist()
     print(f"Number of entries with valid 'speed' values: {len(valid_speed_rows)}")
+    dataset_directory_training = build_training_directory_img(dataset_directory)
     # Filter image_paths based on valid image_ids
-    cleaned_image_paths = [f"{dataset_directory}{filename}.png" for filename in valid_speed_rows['image_id'].values]
+    cleaned_image_paths = [f"{dataset_directory_training}/{filename}.png" for filename in valid_speed_rows['image_id'].values]
     # print(f'GOOD PATH: {cleaned_image_paths}')
 
      # Print paths that are not in cleaned_image_paths
@@ -196,9 +197,9 @@ def load_test_images(dataset_path, image_size):
             img_array = np.array(img)
             
             # Ensure the shape is (height, width, channels)
-            if img_array.shape[-1] != 3:
-                img_array = np.transpose(img_array, (1, 0, 2))  # Swap height and width
-            
+          #  if img_array.shape[-1] != 3:
+          #      img_array = np.transpose(img_array, (1, 0, 2))  # Swap height and width
+          #  
             # Normalize the image array
             img_array = img_array.astype(np.float32) / 255.0  # Scale pixel values to [0, 1]
 
@@ -206,6 +207,30 @@ def load_test_images(dataset_path, image_size):
             image_ids.append(filename.split(".")[0])  # Extracting the image ID from the filename
 
     return np.array(test_images, dtype=np.float32), image_ids
+
+def load_and_preprocess_images(file_paths, image_size):
+    images = []
+    
+    for file_path in file_paths:
+        if file_path.endswith(".png"):
+            # Load image
+            img = Image.open(file_path)
+            img = img.convert('RGB')  # Convert to RGB mode with 24-bit depth
+            img = img.resize(image_size)  # Resize the image to the specified size
+            
+            # Convert the PIL Image to a NumPy array
+            img_array = np.array(img)
+            
+            # Ensure the shape is (height, width, channels)
+           # if img_array.shape[-1] != 3:
+           #     img_array = np.transpose(img_array, (1, 0, 2))  # Swap height and width
+           # 
+            # Normalize the image array
+            img_array = img_array.astype(np.float32) / 255.0  # Scale pixel values to [0, 1]
+
+            images.append(img_array)
+    
+    return np.array(images, dtype=np.float32)
 
 def plot_data_scatter(data_labels_cleaned2):
     # Create a figure and axes for subplots
@@ -296,16 +321,16 @@ def preprocess_dataset(dataset_path):
     
     return image_paths_cleaned2, data_labels_cleaned2
 
-def build_training_validation_and_evaluation_sets(train_image_paths, data_labels, image_shape, batch_size, eval_split, train_val_split):
+def build_training_validation_and_evaluation_sets(train_image_paths, data_labels, eval_split):
 
 
     # Split into training and validation sets our data set [images and labels]
     train_set, val_set, train_labels, val_labels = train_test_split(
         train_image_paths,
         data_labels,
-        test_size=train_val_split[1],
+        test_size=eval_split,
         random_state=42, # 42 is a random value 
-        #stratify=data_labels['speed'] # We want to make sure that we have similar distribution of of the target variable ('speed') 
+        stratify=data_labels['speed'] # We want to make sure that we have similar distribution of of the target variable ('speed') 
                                       # is similar in both the training and validation sets.
     )
 
@@ -313,26 +338,33 @@ def build_training_validation_and_evaluation_sets(train_image_paths, data_labels
     #print(f'VAL LABELS{val_labels}')
   
     # Split validation set into evaluation sets for speed and angle
-    eval_set_speed, eval_set_angle, eval_labels_speed, eval_labels_angle = train_test_split(
-        val_set,
-        val_labels,
-        test_size=eval_split,
-        random_state=42, # 42 is a random value 
-        #stratify=data_labels['speed'] # We want to make sure that we have similar distribution of of the target variable ('speed') 
-                                      # is similar in both the training and validation sets.
-    )
+    # eval_set_speed, eval_set_angle, eval_labels_speed, eval_labels_angle = train_test_split(
+    #    val_set,
+    #    val_labels,
+    #    test_size=eval_split,
+    #    random_state=42, # 42 is a random value 
+    #    #stratify=data_labels['speed'] # We want to make sure that we have similar distribution of of the target variable ('speed') 
+    #                                  # is similar in both the training and validation sets.
+    #)
    # Additional processing as needed (e.g., loading images, data augmentation) - Here we can add more images if we'll need.
 
     # Print summary
     print(f"\nFound {len(train_image_paths)} images.")
     print(f"Using {len(train_set)} ({round(len(train_set) / len(train_image_paths) * 100, 1)}%) for training.")
     print(f"Using {len(val_set)} ({round(len(val_set) / len(train_image_paths) * 100, 1)}%) for validation.")
-    print(f"Using {len(eval_set_speed)} ({round(len(eval_set_speed) / len(train_image_paths) * 100, 1)}%) for evaluation of speed.")
-    print(f"Using {len(eval_set_angle)} ({round(len(eval_set_angle) / len(train_image_paths) * 100, 1)}%) for evaluation of angle.")
+    # Print the distribution of samples based on the speed column in train_labels
+    print("Distribution of samples based on speed in train_labels:")
+    print(train_labels['speed'].value_counts())
+
+    # Print the distribution of samples based on the speed column in val_labels
+    print("\nDistribution of samples based on speed in val_labels:")
+    print(val_labels['speed'].value_counts())
+    #print(f"Using {len(eval_set_speed)} ({round(len(eval_set_speed) / len(train_image_paths) * 100, 1)}%) for evaluation of speed.")
+    #print(f"Using {len(eval_set_angle)} ({round(len(eval_set_angle) / len(train_image_paths) * 100, 1)}%) for evaluation of angle.")
     #print(train_set)
 
     # Additional return statements as needed
-    return train_set, val_set, eval_set_speed, eval_set_angle, train_labels, val_labels, eval_labels_speed, eval_labels_angle
+    return train_set, val_set, train_labels, val_labels
 
 ############################################################################################################
 
