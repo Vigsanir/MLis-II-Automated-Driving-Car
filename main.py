@@ -61,13 +61,13 @@ def compile_model(model, output_label):
 
 
 
-def train(dataset_path, train_labels, val_labels,  model, image_shape, output_label, epochs, directory='trained_models'):
+def train(dataset_path, train_labels, val_labels,  model, image_shape, output_label, augumentation, epochs, directory='trained_models'):
 
     model = compile_model(model, output_label)    
 
     training_images_directory = build_training_directory_img(dataset_path)
-    train_data_generator = create_data_generator(training_images_directory, train_labels, batch_size, image_shape, output_label)
-    val_data_generator = create_data_generator(training_images_directory, val_labels, batch_size, image_shape, output_label)
+    train_data_generator = create_data_generator(training_images_directory, train_labels, batch_size, image_shape, output_label, augumentation)
+    val_data_generator = create_data_generator(training_images_directory, val_labels, batch_size, image_shape, output_label, augumentation)
 
     history = model.fit(
         train_data_generator,
@@ -199,8 +199,8 @@ def print_split_data(X_train, X_val, y_train, y_val):
     print("\nSample from Y Validation set:")
     print(y_val[:3])
 
-def train_test_model(dataset_path, train_labels, val_labels, model, output_label, epochs, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df):
-    history = train(dataset_path, train_labels, val_labels, model, image_shape, output_label, epochs)
+def train_test_model(dataset_path, train_labels, val_labels, model, output_label, augumentation, epochs, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df):
+    history = train(dataset_path, train_labels, val_labels, model, image_shape, output_label, augumentation, epochs)
     predicted_values, y_true = test_cnn_model(dataset_path, model, image_shape, output_label, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, epochs)
     return history, predicted_values, y_true
 
@@ -213,15 +213,14 @@ if __name__ == '__main__':
     batch_size = 128    # Use 32 for training.
     image_shape = (120,120)     # [240, 320] real size of the image.
     eval_split = 0.1    # Test_set %
-
     train_val_split = 0.2 # [training and_validation_set %]
-
+    augumentation = True
 
     # TRAINING HYPERPARAMETERS 
     learning_rate = 0.0001  # Specify your desired learning rate~ 
     epochs = 1
-    epochs_speed = 50
-    epochs_angle = 100
+    epochs_speed = 400
+    epochs_angle = 500
     logging = True # Set to True, the training process might log various metrics (such as loss and accuracy) for visualization and analysis using TensorBoard.
     pool_size=(2, 2)
 
@@ -259,24 +258,24 @@ if __name__ == '__main__':
         # Create and train the models
         model_speed, model_angle = create_cnn_model_v4(image_shape, pool_size)
         if MODEL_SPEED_FLAG:
-            history_speed, predicted_speed, y_true_speed = train_test_model(dataset_path, train_labels, val_labels, model_speed, "speed", epochs_speed, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
+            history_speed, predicted_speed, y_true_speed = train_test_model(dataset_path, train_labels, val_labels, model_speed, "speed", augumentation, epochs_speed, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
         if MODEL_ANGLE_FLAG:
-            history_angle, predicted_angle, y_true_angle = train_test_model(dataset_path, train_labels, val_labels, model_angle, "angle", epochs_angle, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
+            history_angle, predicted_angle, y_true_angle = train_test_model(dataset_path, train_labels, val_labels, model_angle, "angle", augumentation, epochs_angle, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
     else:   
         project_path = get_project_path()
         if MODEL_SPEED_FLAG:
-            model_path_speed = f'{project_path}/03-22_04-05_CNN_model_speed_epochs200+150+150.h5'  # Update with speed model path
+            model_path_speed = f'{project_path}/trained_models/03-23_17-18_CNN_model_speed_epochs650.h5'  # Update with speed model path
             model = load_model(model_path_speed)
                         # Unfreeze all layers for training
             model.trainable = True
-            history_speed, predicted_speed, y_true_speed = train_test_model(dataset_path, train_labels, val_labels, model, "speed", epochs_speed, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
+            history_speed, predicted_speed, y_true_speed = train_test_model(dataset_path, train_labels, val_labels, model, "speed", augumentation, epochs_speed, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
 
         if MODEL_ANGLE_FLAG:
-            model_path_angle = f'{project_path}/trained_models/03-22_13-57_CNN_model_angle_epochs400+150+350.h5'  # Update with angle model path
+            model_path_angle = f'{project_path}/trained_models/03-23_21-47_CNN_model_angle_epochs1000.h5'  # Update with angle model path
             model = load_model(model_path_angle)
             # Unfreeze all layers for training
             model.trainable = True
-            history_angle, predicted_angle, y_true_angle = train_test_model(dataset_path, train_labels, val_labels, model, "angle", epochs_angle, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
+            history_angle, predicted_angle, y_true_angle = train_test_model(dataset_path, train_labels, val_labels, model, "angle", augumentation, epochs_angle, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
 
     if MODEL_SPEED_FLAG == True and MODEL_ANGLE_FLAG == False:
         if DATA_SPLIT_TO_EVALUATE_FLAG:

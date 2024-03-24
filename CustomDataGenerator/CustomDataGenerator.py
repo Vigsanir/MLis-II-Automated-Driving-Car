@@ -6,6 +6,7 @@ from tensorflow.keras.preprocessing.image import load_img
 from tensorflow.keras.preprocessing.image import img_to_array
 import os
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 class CustomDataGenerator(Sequence):
     def __init__(self, input_path, labels_df, batch_size, image_shape, output_label, augmentations=None, shuffle=True):
@@ -19,6 +20,38 @@ class CustomDataGenerator(Sequence):
         self.shuffle = shuffle
         self.indexes = np.arange(len(self.labels_df))
         self.image_data_generator = ImageDataGenerator()
+
+    def augment_images(self, img_array, num_augmented_images=1, **kwargs):
+        # Define an ImageDataGenerator with additional augmentation parameters
+        datagen = ImageDataGenerator(**kwargs)
+       
+        augmented_image = datagen.random_transform(img_array)
+
+        # Generate augmented images
+        #augmented_images = []
+        #for _ in range(num_augmented_images):
+        #    
+        #    augmented_images.append(augmented_image)
+
+        ## Plot original and augmented images side by side
+        #fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+        #
+        ## Plot original image
+        #axes[0].imshow(img_array.astype('uint8'))
+        #axes[0].set_title('Original Image')
+        #axes[0].axis('off')
+        #
+        ## Plot augmented image
+        #axes[1].imshow(augmented_image.astype('uint8'))
+        #axes[1].set_title('Augmented Image')
+        #axes[1].axis('off')
+        #
+        #plt.show()
+
+        # Convert list of augmented images to a numpy array
+        augmented_images = np.array(augmented_image)
+ 
+        return augmented_image
 
     def __len__(self):
         return int(np.floor(len(self.labels_df) / self.batch_size))
@@ -34,17 +67,43 @@ class CustomDataGenerator(Sequence):
             img = load_img(path, target_size=self.image_shape)
             img = img.convert("RGB")
             img_array = img_to_array(img)
-            # Normalize the image array
-            img_array = img_array / 255.0  # Scale pixel values to [0, 1]
-            batch_images.append(img_array)
+            # Set to do augmentation when 'augmentations' is True.
+            if self.augmentations:
 
+                # We choose randomnly to do augmentation on different images from the batch. not on all of them. 
+                # When do augumentation is randomnly set to 1, go on the if branch.
+                flag = np.arange(2)
+                np.random.shuffle(flag)
+                do_augumentation = flag[0]
+                if(do_augumentation):
+                   # print('Do augmentation')
+                   # Define augmentation parameters
+                    num_augmented_images = 1
+                    augmentation_params = {
+                        'rotation_range': 0,
+                        'height_shift_range': 0.05,
+                        'shear_range': 0.05,
+                        'zoom_range': 0.01,
+                    }
+                    # print(f'Shape image:{img_array.shape}')
+                    # Augment the image array
+                    augmented_images = self.augment_images(img_array, num_augmented_images=num_augmented_images, **augmentation_params)
+                                # Normalize the image array
+                    img_array  = augmented_images
+                else:
+                    pass
+                    #print('NO.....')
+
+            img_array = img_array / 255.0  # Scale pixel values to [0, 1] / 255.0 
+            batch_images.append(img_array)
+            
         batch_images = np.array(batch_images)
         output_values = np.array(batch_labels)
 
         return batch_images, output_values
 
     def on_epoch_end(self):
-        if self.shuffle == True:
+        if self.shuffle:
             np.random.shuffle(self.indexes)
 
     def __iter__(self):
@@ -53,7 +112,7 @@ class CustomDataGenerator(Sequence):
             yield self[i]
 
 def create_data_generator(input_path, labels_df, batch_size, image_shape, output_label, augmentations=None, shuffle=True ):
-    return CustomDataGenerator(input_path, labels_df, batch_size, image_shape, output_label, augmentations=None, shuffle=True)
+    return CustomDataGenerator(input_path, labels_df, batch_size, image_shape, output_label, augmentations, shuffle)
 
 def get_dataset_path():
     if 'KAGGLE_KERNEL_RUN_TYPE' in os.environ:
