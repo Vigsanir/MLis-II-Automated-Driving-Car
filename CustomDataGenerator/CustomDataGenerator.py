@@ -32,7 +32,7 @@ class CustomDataGenerator(Sequence):
         #for _ in range(num_augmented_images):
         #    
         #    augmented_images.append(augmented_image)
-
+        #
         ## Plot original and augmented images side by side
         #fig, axes = plt.subplots(1, 2, figsize=(10, 5))
         #
@@ -47,7 +47,7 @@ class CustomDataGenerator(Sequence):
         #axes[1].axis('off')
         #
         #plt.show()
-
+        #
         # Convert list of augmented images to a numpy array
         augmented_images = np.array(augmented_image)
  
@@ -79,11 +79,27 @@ class CustomDataGenerator(Sequence):
                    # print('Do augmentation')
                    # Define augmentation parameters
                     num_augmented_images = 1
+                    #augmentation_params = {
+                    #    'rotation_range': 10,
+                    #    'width_shift_range': 0.1,
+                    #    'height_shift_range': 0.1,
+                    #    'shear_range': 0.1,
+                    #    'zoom_range': 0.2,
+                    #    'horizontal_flip': True,
+                    #    'brightness_range': [0.7, 1.3],
+                    #    'channel_shift_range': 10.0,
+                    #    'fill_mode': 'nearest'
+                    #}
+
                     augmentation_params = {
-                        'rotation_range': 0,
-                        'height_shift_range': 0.05,
-                        'shear_range': 0.05,
-                        'zoom_range': 0.01,
+                        'rotation_range': 0.00,
+                        'height_shift_range': 0.00,
+                        'shear_range': 0.00,
+                        'zoom_range': 0.1,
+                        'brightness_range': [0.7, 1.3],
+                        'channel_shift_range': 5.0, 
+                        'horizontal_flip': True, # we can use it just when we train for speed model 
+                        'fill_mode': 'nearest'
                     }
                     # print(f'Shape image:{img_array.shape}')
                     # Augment the image array
