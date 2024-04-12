@@ -217,17 +217,17 @@ if __name__ == '__main__':
     augumentation = True
 
     # TRAINING HYPERPARAMETERS 
-    learning_rate = 0.00005  # Specify your desired learning rate~ 
+    learning_rate = 0.0000001  # Specify your desired learning rate~ 
     epochs = 1
     epochs_speed = 200
-    epochs_angle = 500
-    logging = True # Set to True, the training process might log various metrics (such as loss and accuracy) for visualization and analysis using TensorBoard.
+    epochs_angle =150
+    logging = False # Set to True, the training process might log various metrics (such as loss and accuracy) for visualization and analysis using TensorBoard.
     pool_size=(2, 2)
 
     FIRST_TRAIN_FLAG = False  # SET TRUE if it is the first train of the model. 
                               # SET FALSE if want to continue training a model that has been trained in the past. Update with model paths
-    MODEL_SPEED_FLAG = True   # SET TRUE if want to train the SPEED model
-    MODEL_ANGLE_FLAG = False  # SET TRUE if want to train the ANGLE model
+    MODEL_SPEED_FLAG = False   # SET TRUE if want to train the SPEED model
+    MODEL_ANGLE_FLAG = True  # SET TRUE if want to train the ANGLE model
     DATA_SPLIT_TO_EVALUATE_FLAG = False # SET TRUE if want to split the data for evaluation.
 
 
@@ -271,7 +271,7 @@ if __name__ == '__main__':
             history_speed, predicted_speed, y_true_speed = train_test_model(dataset_path, train_labels, val_labels, model, "speed", augumentation, epochs_speed, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df)
 
         if MODEL_ANGLE_FLAG:
-            model_path_angle = f'{project_path}/trained_models/03-25_03-08_CNN_model_angle_epochs1500.h5'  # Update with angle model path
+            model_path_angle = f'{project_path}/trained_models/03-29_07-32_CNN_model_angle_epochs400.h5'  # Update with angle model path
             model = load_model(model_path_angle)
             # Unfreeze all layers for training
             model.trainable = True
