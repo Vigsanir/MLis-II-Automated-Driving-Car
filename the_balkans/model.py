@@ -4,13 +4,8 @@ import imutils
 import cv2
 from PIL import Image
 import os
-import os
-from pathlib import Path
-import pandas as pd
 from PIL import Image
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-import numpy as np
+
 
 
 class Model:
