@@ -1,54 +1,61 @@
 import pandas as pd
 from keras.models import load_model
+
+# Custom module imports
 from preprocesing import (
     get_dataset_path, 
     preprocess_dataset, 
     build_training_validation_and_evaluation_sets, 
     get_project_path
-    )
+)
 from train import (
     train_test_model
-    )
-
+)
 from models.cnn_model import (
     create_cnn_model_v4
 )
-
 from evaluation_metrics import (
     print_plot_regression_metrics,
     plot_metrics
 )
 
 class SpeedModel():
-    def __init__(self, data_hyperparameters = (128, (120,120), (2, 2), True ), 
-                      training_hyperparameters = (0.01, 2 , 0.1, 0.2), 
-                      setting = (False , True, True) ): 
+    def __init__(self, data_hyperparameters=(128, (120,120), (2, 2), True), 
+                       training_hyperparameters=(0.01, 2 , 0.1, 0.2), 
+                       setting=(False, True, True)):
+        """
+        Initializes the SpeedModel with hyperparameters and settings.
+        """
         # DATA HYPERPARAMETERS
         self.batch_size = data_hyperparameters[0]    
         self.image_shape = data_hyperparameters[1]    
         self.pool_size = data_hyperparameters[2]    
-        self.augumentation = data_hyperparameters[3]    
+        self.augmentation = data_hyperparameters[3]    
         
         # TRAINING HYPERPARAMETERS 
-        self.learning_rate = training_hyperparameters[0]  # Specify your desired learning rate~ 
+        self.learning_rate = training_hyperparameters[0]  
         self.epochs_speed = training_hyperparameters[1]
-        self.eval_split = training_hyperparameters[2]    # Test_set %
-        self.train_val_split = training_hyperparameters[3] # [training and_validation_set %]
+        self.eval_split = training_hyperparameters[2]    
+        self.train_val_split = training_hyperparameters[3]
         
         # Setting
-        self.logging = setting[0]                    # TRUE = the training process might log various metrics (such as loss and accuracy) for visualization and analysis using TensorBoard.
-        self.FIRST_TRAIN_FLAG = setting[1]           #  TRUE = first train of the model. FALSE = continue training a model.
-        self.DATA_SPLIT_TO_EVALUATE_FLAG = setting[2] #  TRUE = split the dataset for evaluation.
+        self.logging = setting[0]                    
+        self.FIRST_TRAIN_FLAG = setting[1]           
+        self.DATA_SPLIT_TO_EVALUATE_FLAG = setting[2] 
 
-        self.image_paths = []   # Empty list with image paths
-        self.dataset_path = ""   # Empty str fro dataset_path
-        self.data_labels = pd.DataFrame() # Empty DataFrame for all labels
-        self.train_labels = pd.DataFrame() # Empty DataFrame for labels used for training
-        self.val_labels = pd.DataFrame() # Empty DataFrame for labels used for validation
+        # Data placeholders
+        self.image_paths = []   
+        self.dataset_path = ""   
+        self.data_labels = pd.DataFrame() 
+        self.train_labels = pd.DataFrame() 
+        self.val_labels = pd.DataFrame() 
         self.evaluate_df = [None, None]
 
 
     def print_split_data(self, X_train, X_val, y_train, y_val):
+        """
+        Prints sample data from training and validation sets.
+        """
         # Display some samples from the training and validation sets
         print("\nSample from X Training set:")
         for sample in X_train[:3]:
@@ -65,9 +72,16 @@ class SpeedModel():
         print(y_val[:3])
 
     def update_dataset(self):
+        """
+        Updates the dataset with new data.
+        """
+        # Get dataset path
         self.dataset_path = get_dataset_path()
 
+        # Preprocess dataset
         image_paths, data_labels = preprocess_dataset(self.dataset_path)
+
+        # Split dataset for evaluation if required
         if self.DATA_SPLIT_TO_EVALUATE_FLAG:
             TrainVal_set_path, Test_set_path, TrainVal_labels, Test_labels = build_training_validation_and_evaluation_sets(
                                                                             image_paths, data_labels,  self.eval_split)
@@ -82,6 +96,7 @@ class SpeedModel():
             TrainVal_labels = data_labels
             self.evaluate_df = [None, None]
         
+        # Split data for training and validation
         X_train, X_val, self.train_labels, val_labels = build_training_validation_and_evaluation_sets(
                                                         TrainVal_set_path, TrainVal_labels, self.train_val_split)
 
@@ -89,24 +104,32 @@ class SpeedModel():
         self.print_split_data(X_train, X_val, self.train_labels, self.val_labels)
 
     def speed_model_update(self, model):
+        """
+        Updates the speed model.
+        """
+        # Update dataset
         self.update_dataset() 
         
+        # Create CNN model
         model_speed, _ = create_cnn_model_v4(self.image_shape, self.pool_size)
 
         if self.FIRST_TRAIN_FLAG:
+            # Train the model
             history_speed, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
-                                                                        model_speed, "speed", self.augumentation, self.epochs_speed, 
+                                                                        model_speed, "speed", self.augmentation, self.epochs_speed, 
                                                                         self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
         else: 
+            # Load pre-trained model
             project_path = get_project_path()
-            model_path_speed = f'{project_path}/trained_models/{model}'  # Update with speed model path
+            model_path_speed = f'{project_path}/trained_models/{model}'   # Update with speed model path
             model = load_model(model_path_speed)
             # Unfreeze all layers for training
             model.trainable = True
             history_speed, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
-                                                                        model_speed, "speed", self.augumentation, self.epochs_speed, 
+                                                                        model_speed, "speed", self.augmentation, self.epochs_speed, 
                                                                         self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
 
+            # Plot evaluation metrics
             if self.DATA_SPLIT_TO_EVALUATE_FLAG:
                 print_plot_classification_metrics(y_true_speed, predicted_speed)
             plot_metrics(history_speed, "speed", self.epochs_speed)
@@ -114,6 +137,9 @@ class SpeedModel():
     
 
 def run_speed_model(data_hyperparameters, training_hyperparameters, setting, model):
+    """
+    Runs the speed model.
+    """
     speed_model = SpeedModel(data_hyperparameters, training_hyperparameters, setting)
     speed_model.speed_model_update(model)
 
@@ -139,14 +165,11 @@ if __name__ == '__main__':
     
     # Setting
     setting = (
-        False,                      # logging: Set to True if the training process might log various metrics for visualization and analysis using TensorBoard.
-        False,                      # FIRST_TRAIN_FLAG: Set to True if it is the first train of the model, False if you want to continue training a model that has been trained in the past.
-        False                       # DATA_SPLIT_TO_EVALUATE_FLAG: Set to True if you want to split the data for evaluation.
+        False,                      # logging
+        False,                      # FIRST_TRAIN_FLAG
+        False                       # DATA_SPLIT_TO_EVALUATE_FLAG
         )
 
-    model =  '03-24_15-47_CNN_model_speed_epochs1050.h5'
+    model =  '03-24_15-47_CNN_model_speed_epochs1050.h5'  # Path to the saved SPEED model
 
-    speed_model = SpeedModel(data_hyperparameters, training_hyperparameters, setting)
-    speed_model.speed_model_update(model)
-
-
+    run_speed_model(data_hyperparameters, training_hyperparameters, setting, model)
