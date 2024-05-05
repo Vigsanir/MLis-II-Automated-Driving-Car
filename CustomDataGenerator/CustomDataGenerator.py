@@ -93,12 +93,12 @@ class CustomDataGenerator(Sequence):
 
                     augmentation_params = {
                         'rotation_range': 0.00,
-                        'height_shift_range': 0.00,
+                        'height_shift_range': 0.01,
                         'shear_range': 0.00,
-                        'zoom_range': 0.1,
+                        'zoom_range': 0.15,
                         'brightness_range': [0.7, 1.3],
                         'channel_shift_range': 5.0, 
-                        'horizontal_flip': True, # we can use it just when we train for speed model 
+                        'horizontal_flip': False, # we can use it just when we train for speed model 
                         'fill_mode': 'nearest'
                     }
                     # print(f'Shape image:{img_array.shape}')
