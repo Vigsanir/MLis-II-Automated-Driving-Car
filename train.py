@@ -39,7 +39,7 @@ def compile_model(model, output_label):
         )
     return model
 
-def train(dataset_path, train_labels, val_labels,  model, image_shape, output_label, augumentation, epochs, batch_size, directory='trained_models'  ):
+def train(dataset_path, train_labels, val_labels,  model, image_shape, output_label, augumentation, epochs, batch_size, directory='trained_models'):
 
     model = compile_model(model, output_label)    
 
