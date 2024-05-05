@@ -195,6 +195,48 @@ def print_plot_classification_metrics(y_true_cls, y_pred_cls):
 
 def print_plot_regression_metrics(y_true_reg, y_pred_reg):
     print_regression_metrics(y_true_reg, y_pred_reg)
+
+def plot_training_metrics(history, output_label, epochs, directory='plots'):
+    # Plotting training metrics
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+
+    # Plotting loss-related metrics
+    ax1.plot(history.history['loss'], label='Loss')
+    ax1.plot(history.history['mse'], label='MSE')
+    ax1.plot(history.history['mae'], label='MAE')
+    ax1.set_title('Loss Metrics')
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Value')
+    ax1.legend()
+    if output_label == 'speed':
+        # Plotting performance-related metrics
+        ax2.plot(history.history['accuracy'], label='Accuracy')
+        ax2.plot(history.history['precision'], label='Precision')
+        ax2.plot(history.history['recall'], label='Recall')
+        ax2.plot(history.history['auc'], label='AUC')
+        ax2.set_title('Performance Metrics')
+        ax2.set_xlabel('Epoch')
+        ax2.set_ylabel('Value')
+        ax2.legend()
+
+    plt.tight_layout()
+  
+    current_date = datetime.now().strftime("%m-%d_%H-%M")
+    # Create the directory if it doesn't exist
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    # Save the plot in the directory
+    plt.savefig(os.path.join(directory, f'{current_date}_Model_{output_label}_epochs{epochs}.png'))
+
+    plt.show()
+
+    # Close the current figure
+    plt.close()
+
+def plot_metrics(history, output_label, epochs, directory='plots'):
+    plot_training_metrics(history, output_label, epochs, directory)
+
     
 
 TEST_FLAG = False
