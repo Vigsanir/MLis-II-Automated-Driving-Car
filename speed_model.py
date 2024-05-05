@@ -143,10 +143,9 @@ def run_speed_model(data_hyperparameters, training_hyperparameters, setting, mod
     speed_model = SpeedModel(data_hyperparameters, training_hyperparameters, setting)
     speed_model.speed_model_update(model)
 
-
-# Call the training function
+# Main execution block
 if __name__ == '__main__':
-
+    # Set hyperparameters and settings
     # DATA HYPERPARAMETERS
     data_hyperparameters = (
         128,                    # batch_size
@@ -172,4 +171,5 @@ if __name__ == '__main__':
 
     model =  '03-24_15-47_CNN_model_speed_epochs1050.h5'  # Path to the saved SPEED model
 
+    # Run speed model
     run_speed_model(data_hyperparameters, training_hyperparameters, setting, model)
