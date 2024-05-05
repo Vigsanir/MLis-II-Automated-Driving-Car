@@ -39,8 +39,8 @@ class AngleModel():
         self.train_val_split = training_hyperparameters[3]
         
         # Setting
-        self.FIRST_TRAIN_FLAG = setting[0]           
-        self.logging = setting[1]                    
+        self.logging = setting[0]                    
+        self.FIRST_TRAIN_FLAG = setting[1]           
         self.DATA_SPLIT_TO_EVALUATE_FLAG = setting[2] 
 
         # Data placeholders
@@ -145,6 +145,8 @@ def run_angle_model(data_hyperparameters, training_hyperparameters, setting, mod
 # Main execution block
 if __name__ == '__main__':
     # Set hyperparameters and settings
+
+    # DATA HYPERPARAMETERS
     data_hyperparameters = (
         128,                    # batch_size
         (120, 120),             # image_shape
@@ -152,6 +154,7 @@ if __name__ == '__main__':
         True                    # augmentation
     )
 
+    # TRAINING HYPERPARAMETERS 
     training_hyperparameters = (
         0.0000001,  # learning_rate
         3,          # epochs_angle
@@ -159,6 +162,7 @@ if __name__ == '__main__':
         0.2         # train_val_split
     )
     
+    # Setting
     setting = (
         False,      # logging
         False,      # FIRST_TRAIN_FLAG
