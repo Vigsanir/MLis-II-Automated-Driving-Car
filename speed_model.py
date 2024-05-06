@@ -108,12 +108,11 @@ class SpeedModel():
         Updates the speed model.
         """
         # Update dataset
-        self.update_dataset() 
-        
-        # Create CNN model
-        model_speed, _ = create_cnn_model_v4(self.image_shape, self.pool_size)
+        self.update_dataset()        
 
         if self.FIRST_TRAIN_FLAG:
+            # Create CNN model
+            model_speed, _ = create_cnn_model_v4(self.image_shape, self.pool_size)
             # Train the model
             history_speed, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_speed, "speed", self.augmentation, self.epochs_speed, 
@@ -122,9 +121,9 @@ class SpeedModel():
             # Load pre-trained model
             project_path = get_project_path()
             model_path_speed = f'{project_path}/trained_models/{model}'   # Update with speed model path
-            model = load_model(model_path_speed)
+            model_speed = load_model(model_path_speed)
             # Unfreeze all layers for training
-            model.trainable = True
+            model_speed.trainable = True
             history_speed, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_speed, "speed", self.augmentation, self.epochs_speed, 
                                                                         self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)

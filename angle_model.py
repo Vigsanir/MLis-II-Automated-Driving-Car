@@ -108,12 +108,11 @@ class AngleModel():
         Updates the angle model.
         """
         # Update dataset
-        self.update_dataset() 
-        
-        # Create CNN model
-        _, model_angle = create_cnn_model_v4(self.image_shape, self.pool_size)
+        self.update_dataset()        
 
         if self.FIRST_TRAIN_FLAG:
+	        # Create CNN model
+            _, model_angle = create_cnn_model_v4(self.image_shape, self.pool_size)
             # Train the model
             history_angle, predicted_angle, y_true_angle = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_angle, "angle", self.augmentation, self.epochs_angle, 
@@ -122,9 +121,9 @@ class AngleModel():
             # Load pre-trained model
             project_path = get_project_path()
             model_path_angle = f'{project_path}/trained_models/{model}'  
-            model = load_model(model_path_angle)
+            model_angle = load_model(model_path_angle)
             # Unfreeze all layers for training
-            model.trainable = True
+            model_angle.trainable = True
             history_angle, predicted_angle, y_true_angle = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_angle, "angle", self.augmentation, self.epochs_angle, 
                                                                         self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
