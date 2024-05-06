@@ -16,14 +16,14 @@ pool_size_s = (2, 2)  # Size of the pooling operation.
 augmentation_s = True   # Data augmentation flag, whether to apply data augmentation during training.
 
 # Training hyperparameters
-learning_rate_s = 0.0000001  # Specify your desired learning rate
-epochs_s = 10  # Number of epochs to train the model.
+learning_rate_s = 0.0001  # Specify your desired learning rate
+epochs_s = 200  # Number of epochs to train the model.
 eval_split_s = 0.1  # Percentage of the data to be used as test set.
 train_val_split_s = 0.2  # Percentage of data to be used for training and validation.
 
 logging_s = True  # Logging flag: Set to True if the training process might log various metrics for visualization and analysis using TensorBoard.
 FIRST_TRAIN_FLAG_s = True  # Set to True if it is the first train of the model, False if you want to continue training a model that has been trained in the past.                     
-DATA_SPLIT_TO_EVALUATE_FLAG_s = True  # Set to True if you want to split the data for evaluation.
+DATA_SPLIT_TO_EVALUATE_FLAG_s = False  # Set to True if you want to split the data for evaluation.
 saved_speed_model = '03-24_15-47_CNN_model_speed_epochs1050.h5'  # Path to the saved SPEED model
 
 # ANGLE MODEL HYPERPARAMETERS
@@ -34,14 +34,14 @@ pool_size_a = (2, 2)  # Size of the pooling operation.
 augmentation_a = True   # Data augmentation flag, whether to apply data augmentation during training.
 
 # Training hyperparameters
-learning_rate_a = 0.0000001  # Specify your desired learning rate
-epochs_a = 10  # Number of epochs to train the model.
+learning_rate_a = 0.0001  # Specify your desired learning rate
+epochs_a = 200  # Number of epochs to train the model.
 eval_split_a = 0.1  # Percentage of the data to be used as test set.
 train_val_split_a = 0.2  # Percentage of data to be used for training and validation.
 
 logging_a = True  # Logging flag: Set to True if the training process might log various metrics for visualization and analysis using TensorBoard.
 FIRST_TRAIN_FLAG_a = True  # Set to True if it is the first train of the model, False if you want to continue training a model that has been trained in the past.                     
-DATA_SPLIT_TO_EVALUATE_FLAG_a = True  # Set to True if you want to split the data for evaluation.
+DATA_SPLIT_TO_EVALUATE_FLAG_a = False  # Set to True if you want to split the data for evaluation.
 saved_angle_model = '03-27_22-06_CNN_model_angle_epochs3000.h5'  # Path to the saved ANGLE model
 
 if __name__ == '__main__':

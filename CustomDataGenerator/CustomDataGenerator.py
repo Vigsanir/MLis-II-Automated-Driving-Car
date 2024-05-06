@@ -90,7 +90,9 @@ class CustomDataGenerator(Sequence):
                     #    'channel_shift_range': 10.0,
                     #    'fill_mode': 'nearest'
                     #}
-
+                    if self.output_label == "speed": horizontal_flip_B = True
+                    else: horizontal_flip_B = False
+                    
                     augmentation_params = {
                         'rotation_range': 0.00,
                         'height_shift_range': 0.01,
@@ -98,7 +100,7 @@ class CustomDataGenerator(Sequence):
                         'zoom_range': 0.15,
                         'brightness_range': [0.7, 1.3],
                         'channel_shift_range': 5.0, 
-                        'horizontal_flip': False, # we can use it just when we train for speed model 
+                        'horizontal_flip': horizontal_flip_B, # we can use it just when we train for speed model 
                         'fill_mode': 'nearest'
                     }
                     # print(f'Shape image:{img_array.shape}')

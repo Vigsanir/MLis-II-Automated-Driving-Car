@@ -115,7 +115,7 @@ class SpeedModel():
 
         if self.FIRST_TRAIN_FLAG:
             # Train the model
-            history_speed, evaluation_metrics, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
+            history_speed, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_speed, "speed", self.augmentation, self.epochs_speed, 
                                                                         self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
         else: 
@@ -125,16 +125,17 @@ class SpeedModel():
             model = load_model(model_path_speed)
             # Unfreeze all layers for training
             model.trainable = True
-            history_speed, evaluation_metrics, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
+            history_speed, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_speed, "speed", self.augmentation, self.epochs_speed, 
                                                                         self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
 
-            # Plot evaluation metrics
-            if self.DATA_SPLIT_TO_EVALUATE_FLAG:
-                # Split data in data for traiining and evaluation / and data for testing.
-                print_plot_classification_metrics(y_true_speed, predicted_speed)
-                
-            plot_metrics(history_speed, "speed", self.epochs_speed, evaluation_metrics)
+        # Plot evaluation metrics
+
+        if self.DATA_SPLIT_TO_EVALUATE_FLAG:
+            # Split data in data for traiining and evaluation / and data for testing.
+            print_plot_classification_metrics(y_true_speed, predicted_speed)
+            
+        plot_metrics(history_speed, "speed", self.epochs_speed)
 
     
 
@@ -159,7 +160,7 @@ if __name__ == '__main__':
     # TRAINING HYPERPARAMETERS 
     training_hyperparameters = (
         0.0000001,  # learning_rate
-        3,          # epochs_speed
+        2,          # epochs_speed
         0.1,        # eval_split
         0.2         # train_val_split
     )
@@ -170,8 +171,6 @@ if __name__ == '__main__':
         False,                      # FIRST_TRAIN_FLAG
         False                       # DATA_SPLIT_TO_EVALUATE_FLAG
         )
-
     model =  '03-24_15-47_CNN_model_speed_epochs1050.h5'  # Path to the saved SPEED model
-
     # Run speed model
     run_speed_model(data_hyperparameters, training_hyperparameters, setting, model)

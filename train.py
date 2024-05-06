@@ -1,4 +1,5 @@
 import os
+import pickle
 import pandas as pd
 from datetime import datetime
 from tensorflow.python.keras.losses import BinaryCrossentropy, MeanSquaredError
@@ -80,52 +81,23 @@ def train(dataset_path, train_labels, val_labels,  model, image_shape, output_la
         verbose=1  # Set verbose to 0 to disable the default progress bar
     )
 
-    # Initialize dictionary to store evaluation metrics for each epoch
-    evaluation_metrics = []
-    # Evaluate the model on the validation data after each epoch
-    for epoch in range(epochs):
-        # Evaluate the model on the validation data
-        evaluation = model.evaluate(val_data_generator)
-        # Print the evaluation metrics
-        if output_label == "speed":
-
-            print(f'Epoch {epoch + 1} - Validation Loss: {evaluation[0]}, Validation Binary Accuracy: {evaluation[1]}, Validation Precision: {evaluation[2]}, Validation Recall: {evaluation[3]}, Validation AUC: {evaluation[4]}, Validation MSE: {evaluation[5]}, Validation MAE: {evaluation[6]}')
-
-            # Store the evaluation metrics in the list
-            evaluation_metrics.append({
-                'epoch': epoch + 1,
-                'loss': evaluation[0],
-                'binary_accuracy': evaluation[1],
-                'precision': evaluation[2],
-                'recall': evaluation[3],
-                'auc': evaluation[4],
-                'mse': evaluation[5],
-                'mae': evaluation[6]
-            })
-
-        if output_label == "angle":
-
-            print(f'Epoch {epoch + 1} - Validation Loss: {evaluation[0]}, Validation MSE: {evaluation[1]}, Validation MAE: {evaluation[2]}')
-                  
-            # Store the evaluation metrics in the list
-            evaluation_metrics.append({
-                'epoch': epoch + 1,
-                'loss': evaluation[0],
-                'mse': evaluation[1],
-                'mae': evaluation[2]
-            })
-        
-        
-  
     # Get the current date
     current_date = datetime.now().strftime("%m-%d_%H-%M")
-    # Save the compiled model and trained.
     model.trainable = False
     if not os.path.exists(directory):
         os.makedirs(directory)
+    # Save model
     model.save(os.path.join(directory, f'{current_date}_CNN_model_{output_label}_epochs{epochs}.h5'))
+    # Save training history
+     
+    with open(os.path.join(directory, f'{current_date}_history_{output_label}_epochs{epochs}.pkl'), 'wb') as file:
+        pickle.dump(history.history, file)
+    
+    ## Save evaluation metrics
+    #with open(os.path.join(directory, f'{current_date}_evaluation_metrics_{output_label}_epochs{epochs}.pkl'), 'wb') as file:
+    #    pickle.dump(evaluation_metrics, file)
 
-    return history, evaluation_metrics
+    return history
 
 def model_predict(dataset_path, model, image_shape, output_label, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, epochs, directory='predictions_submission'):
     """
@@ -204,6 +176,6 @@ def train_test_model(dataset_path, train_labels, val_labels, model, output_label
     - DataFrame containing prediction results.
     - True labels (only for evaluation purposes).
     """
-    history,evaluation_metrics = train(dataset_path, train_labels, val_labels, model, image_shape, output_label, augumentation, epochs, batch_size)
+    history = train(dataset_path, train_labels, val_labels, model, image_shape, output_label, augumentation, epochs, batch_size)
     predicted_values, y_true = model_predict(dataset_path, model, image_shape, output_label, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, epochs)
-    return history, evaluation_metrics, predicted_values, y_true
+    return history, predicted_values, y_true

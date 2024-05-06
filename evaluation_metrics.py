@@ -99,7 +99,7 @@ def plot_classification_metrics(y_true, y_pred):
     axes[0].text(0.5, -0.1, metrics_text, horizontalalignment='center', verticalalignment='center', transform=axes[0].transAxes)
 
     plt.tight_layout()
-    plt.show()
+    #plt.show()
 
     # Save plot
     save_figure_and_data(fig, cm, "confusion_matrix")
@@ -178,7 +178,7 @@ def plot_regression_metrics(y_true, y_pred, metrics):
     metrics_text = f"\n\n\n\n\nMAE: {mae_value}\nMSE: {mse_value}\nRMSE: {rmse_value}\nR^2 Score: {r2_score_value}"
     axes[0].text(0.5, -0.1, metrics_text, horizontalalignment='center', verticalalignment='center', transform=axes[0].transAxes)
     plt.tight_layout()
-    plt.show()
+    #plt.show()
 
     # Save plot
     save_figure_and_data(fig, (y_true, y_pred_angle, residual), "regression_plots")
@@ -200,84 +200,100 @@ def print_plot_regression_metrics(y_true_reg, y_pred_reg):
 
 
 def plot_training_metrics(history, output_label, epochs, directory='plots'):
-    # Plotting training metrics
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-
-    # Plotting loss-related metrics
-    ax1.plot(history.history['loss'], label='Loss')
-    ax1.plot(history.history['mse'], label='MSE')
-    ax1.plot(history.history['mae'], label='MAE')
-    ax1.set_title('Loss Metrics')
-    ax1.set_xlabel('Epoch')
-    ax1.set_ylabel('Value')
-    ax1.legend()
+    
+     # Plotting training metrics
     if output_label == 'speed':
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+
+        # Plotting loss-related metrics
+        ax1.plot(history.history['loss'], label='Loss')
+        ax1.plot(history.history['mse'], label='MSE')
+        ax1.plot(history.history['mae'], label='MAE')
+        ax1.set_title('Training Loss Metrics')
+        ax1.set_xlabel('Epoch')
+        ax1.set_ylabel('Value')
+        ax1.legend()
+
         # Plotting performance-related metrics
         ax2.plot(history.history['accuracy'], label='Accuracy')
         ax2.plot(history.history['precision'], label='Precision')
         ax2.plot(history.history['recall'], label='Recall')
         ax2.plot(history.history['auc'], label='AUC')
-        ax2.set_title('Performance Metrics')
+        ax2.set_title('Training Performance Metrics')
         ax2.set_xlabel('Epoch')
         ax2.set_ylabel('Value')
         ax2.legend()
+  
+    else:
+        fig, ax1 = plt.subplots(figsize=(10, 8))
+
+        # Plotting loss-related metrics
+        ax1.plot(history.history['loss'], label='Loss')
+        ax1.plot(history.history['mse'], label='MSE')
+        ax1.plot(history.history['mae'], label='MAE')
+        ax1.set_title('Training Loss Metrics')
+        ax1.set_xlabel('Epoch')
+        ax1.set_ylabel('Value')
+        ax1.legend()
 
     plt.tight_layout()
-  
-    return plt
+    
+    plt.close(fig)
+    
+    return fig
 
 
-def plot_evaluation_metrics_clasification(evaluation_metrics):
-    epochs = range(1, len(evaluation_metrics) + 1)
-    loss = [metric['loss'] for metric in evaluation_metrics]
-    binary_accuracy = [metric['binary_accuracy'] for metric in evaluation_metrics]
-    precision = [metric['precision'] for metric in evaluation_metrics]
-    recall = [metric['recall'] for metric in evaluation_metrics]
-    auc = [metric['auc'] for metric in evaluation_metrics]
-    mse = [metric['mse'] for metric in evaluation_metrics]
-    mae = [metric['mae'] for metric in evaluation_metrics]
+def plot_valuation_metrics_classification(evaluation):
+    epochs = range(1, len(evaluation.history['val_loss']) + 1)
+    
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
 
-    plt.figure(figsize=(10, 8))
+    # Plot loss-related metrics
+    ax1.plot(epochs, evaluation.history['val_loss'], label='Validation Loss')
+    ax1.plot(epochs, evaluation.history['val_mse'], label='Validation MSE')
+    ax1.plot(epochs, evaluation.history['val_mae'], label='Validation MAE')
+    ax1.set_title('Valuation Loss Metrics')
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Value')
+    ax1.legend()
 
-    plt.plot(epochs, loss, 'b', label='Validation Loss')
-    plt.plot(epochs, binary_accuracy, 'g', label='Binary Accuracy')
-    plt.plot(epochs, precision, 'r', label='Precision')
-    plt.plot(epochs, recall, 'c', label='Recall')
-    plt.plot(epochs, auc, 'm', label='AUC')
-    plt.plot(epochs, mse, 'y', label='MSE')
-    plt.plot(epochs, mae, 'k', label='MAE')
+    # Plot performance-related metrics
+    ax2.plot(epochs, evaluation.history['val_accuracy'], label='Validation Accuracy')
+    ax2.plot(epochs, evaluation.history['val_precision'], label='Validation Precision')
+    ax2.plot(epochs, evaluation.history['val_recall'], label='Validation Recall')
+    ax2.plot(epochs, evaluation.history['val_auc'], label='Validation AUC')
+    ax2.set_title('Valuation Performance Metrics')
+    ax2.set_xlabel('Epoch')
+    ax2.set_ylabel('Value')
+    ax2.legend()
 
-    plt.title('Evaluation Metrics')
+    plt.tight_layout()
+
+    plt.close(fig)
+    return fig
+
+
+def plot_valuation_metrics_regresion(evaluation):
+    
+    epochs = range(1, len(evaluation.history['val_loss']) + 1)
+    
+    # Plotting valuation metrics
+    fig = plt.figure(figsize=(10, 8))
+
+    # Plotting loss-related metrics
+    plt.plot(evaluation.history['val_loss'], label='Val_Loss')
+    plt.plot(evaluation.history['val_mse'], label='Val_MSE')
+    plt.plot(evaluation.history['val_mae'], label='Val_MAE')
+    plt.title('Valuation Loss Metrics')
     plt.xlabel('Epoch')
     plt.ylabel('Value')
     plt.legend()
+    
+    plt.close(fig)
+    return fig
 
     
-    return plt
-
-
-def plot_evaluation_metrics_regresion(evaluation_metrics):
-    epochs = range(1, len(evaluation_metrics) + 1)
-    loss = [metric['loss'] for metric in evaluation_metrics]
-    mse = [metric['mse'] for metric in evaluation_metrics]
-    mae = [metric['mae'] for metric in evaluation_metrics]
-
-    plt.figure(figsize=(10, 8))
-
-    plt.plot(epochs, loss, 'b', label='Validation Loss')
-    plt.plot(epochs, mse, 'g', label='MSE')
-    plt.plot(epochs, mae, 'r', label='MAE')
-
-    plt.title('Evaluation Metrics')
-    plt.xlabel('Epoch')
-    plt.ylabel('Value')
-    plt.legend()
-
-    
-    return plt
-
-    
-def plot_metrics(history, output_label, epochs, evaluation_metrics, directory='plots'):
+def plot_metrics(history, output_label, epochs, directory='plots'):
     current_date = datetime.now().strftime("%m-%d_%H-%M")
     # Create the directory if it doesn't exist
     if not os.path.exists(directory):
@@ -286,15 +302,15 @@ def plot_metrics(history, output_label, epochs, evaluation_metrics, directory='p
 
     plt_training = plot_training_metrics(history, output_label, epochs, directory)
     
-    if output_label == "angle":
-        plt_evaluation = plot_evaluation_metrics_regresion(evaluation_metrics)
-    if output_label == "speed":
-        plt_evaluation = plot_evaluation_metrics_clasification(evaluation_metrics)
+    plt_training.savefig(os.path.join(directory, f'{current_date}_Performance_Loss_Metrics_{output_label}_epochs{epochs}.png'))    
     
+    if output_label == "angle":
+        plt_valuation = plot_valuation_metrics_regresion(history)
+    if output_label == "speed":
+        plt_valuation = plot_valuation_metrics_classification(history)
     
     # Save the plot in the directory
-    plt_training.savefig(os.path.join(directory, f'{current_date}_Training_Metrics_{output_label}_epochs{epochs}.png'))    
-    plt_evaluation.savefig(os.path.join(directory, f'{current_date}_Evaluation_Metrics_{output_label}_epochs{epochs}.png'))
+    plt_valuation.savefig(os.path.join(directory, f'{current_date}_Valuation_Metrics_{output_label}_epochs{epochs}.png'))
 
     
 
