@@ -79,21 +79,21 @@ def train(dataset_path, train_labels, val_labels,  model, image_shape, output_la
     if FIRST_TRAIN_FLAG:
         train_data_generator = create_data_generator(training_images_directory, train_labels, batch_size, image_shape, output_label, augmentation)
         # Save the validation data generator and its configuration
-        with open(os.path.join(directory, f'{current_date}_{output_label}_train_data_generator.pkl'), 'wb') as f:
+        with open(os.path.join(directory, f'{current_date}_train_data_generator.pkl'), 'wb') as f:
             pickle.dump(train_data_generator, f)
 
         val_data_generator = create_data_generator(training_images_directory, val_labels, batch_size, image_shape, output_label, augmentation)
         # Save the validation data generator and its configuration
-        with open(os.path.join(directory, f'{current_date}_{output_label}_val_data_generator.pkl'), 'wb') as f:
+        with open(os.path.join(directory, f'{current_date}_val_data_generator.pkl'), 'wb') as f:
             pickle.dump(val_data_generator, f)
 
     else:
         # Load the train data generator configuration
-        with open(os.path.join(directory, f'05-06_12-46_train_data_generator.pkl'), 'rb') as f:
+        with open(os.path.join(directory, f'05-06_13-00_train_data_generator.pkl'), 'rb') as f:
             train_data_generator = pickle.load(f)
             
         # Load the validation data generator configuration
-        with open(os.path.join(directory, f'05-06_12-46_val_data_generator.pkl'), 'rb') as f:
+        with open(os.path.join(directory, f'05-06_13-00_val_data_generator.pkl'), 'rb') as f:
             val_data_generator = pickle.load(f)
 
 
