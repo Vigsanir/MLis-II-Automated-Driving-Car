@@ -91,10 +91,12 @@ def train(dataset_path, train_labels, val_labels,  model, image_shape, output_la
         # Load the train data generator configuration
         with open(os.path.join(directory, f'05-06_13-00_train_data_generator.pkl'), 'rb') as f:
             train_data_generator = pickle.load(f)
+            train_data_generator.output_label = output_label
             
         # Load the validation data generator configuration
         with open(os.path.join(directory, f'05-06_13-00_val_data_generator.pkl'), 'rb') as f:
             val_data_generator = pickle.load(f)
+            val_data_generator.output_label = output_label
 
 
     history = model.fit(
