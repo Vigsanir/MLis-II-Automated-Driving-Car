@@ -116,7 +116,7 @@ class AngleModel():
             # Train the model
             history_angle, predicted_angle, y_true_angle = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_angle, "angle", self.augmentation, self.epochs_angle, 
-                                                                        self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
+                                                                        self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size, self.FIRST_TRAIN_FLAG)
         else: 
             # Load pre-trained model
             project_path = get_project_path()
@@ -126,7 +126,7 @@ class AngleModel():
             model_angle.trainable = True
             history_angle, predicted_angle, y_true_angle = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_angle, "angle", self.augmentation, self.epochs_angle, 
-                                                                        self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
+                                                                        self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size, self.FIRST_TRAIN_FLAG)
 
         # Plot evaluation metrics
         if self.DATA_SPLIT_TO_EVALUATE_FLAG:

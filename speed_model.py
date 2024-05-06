@@ -116,7 +116,7 @@ class SpeedModel():
             # Train the model
             history_speed, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_speed, "speed", self.augmentation, self.epochs_speed, 
-                                                                        self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
+                                                                        self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size, self.FIRST_TRAIN_FLAG)
         else: 
             # Load pre-trained model
             project_path = get_project_path()
@@ -126,7 +126,7 @@ class SpeedModel():
             model_speed.trainable = True
             history_speed, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_speed, "speed", self.augmentation, self.epochs_speed, 
-                                                                        self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
+                                                                        self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size, self.FIRST_TRAIN_FLAG)
 
         # Plot evaluation metrics
 

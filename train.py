@@ -49,7 +49,7 @@ def compile_model(model, output_label):
         )
     return model
 
-def train(dataset_path, train_labels, val_labels,  model, image_shape, output_label, augumentation, epochs, batch_size, directory='trained_models'):
+def train(dataset_path, train_labels, val_labels,  model, image_shape, output_label, augmentation, epochs, batch_size, FIRST_TRAIN_FLAG, directory='trained_models'):
     """
     Trains the Keras model.
 
@@ -71,8 +71,31 @@ def train(dataset_path, train_labels, val_labels,  model, image_shape, output_la
     model = compile_model(model, output_label)    
 
     training_images_directory = build_training_directory_img(dataset_path)
-    train_data_generator = create_data_generator(training_images_directory, train_labels, batch_size, image_shape, output_label, augumentation)
-    val_data_generator = create_data_generator(training_images_directory, val_labels, batch_size, image_shape, output_label, augumentation)
+    
+    
+
+    # Get the current date
+    current_date = datetime.now().strftime("%m-%d_%H-%M")
+    if FIRST_TRAIN_FLAG:
+        train_data_generator = create_data_generator(training_images_directory, train_labels, batch_size, image_shape, output_label, augmentation)
+        # Save the validation data generator and its configuration
+        with open(os.path.join(directory, f'{current_date}_{output_label}_train_data_generator.pkl'), 'wb') as f:
+            pickle.dump(train_data_generator, f)
+
+        val_data_generator = create_data_generator(training_images_directory, val_labels, batch_size, image_shape, output_label, augmentation)
+        # Save the validation data generator and its configuration
+        with open(os.path.join(directory, f'{current_date}_{output_label}_val_data_generator.pkl'), 'wb') as f:
+            pickle.dump(val_data_generator, f)
+
+    else:
+        # Load the train data generator configuration
+        with open(os.path.join(directory, f'05-06_12-46_train_data_generator.pkl'), 'rb') as f:
+            train_data_generator = pickle.load(f)
+            
+        # Load the validation data generator configuration
+        with open(os.path.join(directory, f'05-06_12-46_val_data_generator.pkl'), 'rb') as f:
+            val_data_generator = pickle.load(f)
+
 
     history = model.fit(
         train_data_generator,
@@ -81,8 +104,7 @@ def train(dataset_path, train_labels, val_labels,  model, image_shape, output_la
         verbose=1  # Set verbose to 0 to disable the default progress bar
     )
 
-    # Get the current date
-    current_date = datetime.now().strftime("%m-%d_%H-%M")
+    
     model.trainable = False
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -154,7 +176,7 @@ def model_predict(dataset_path, model, image_shape, output_label, DATA_SPLIT_TO_
 
     return results_df, y_true
 
-def train_test_model(dataset_path, train_labels, val_labels, model, output_label, augumentation, epochs, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, batch_size):
+def train_test_model(dataset_path, train_labels, val_labels, model, output_label, augumentation, epochs, image_shape, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, batch_size, FIRST_TRAIN_FLAG):
     """
     Trains and tests the CNN model.
 
@@ -176,6 +198,6 @@ def train_test_model(dataset_path, train_labels, val_labels, model, output_label
     - DataFrame containing prediction results.
     - True labels (only for evaluation purposes).
     """
-    history = train(dataset_path, train_labels, val_labels, model, image_shape, output_label, augumentation, epochs, batch_size)
+    history = train(dataset_path, train_labels, val_labels, model, image_shape, output_label, augumentation, epochs, batch_size, FIRST_TRAIN_FLAG)
     predicted_values, y_true = model_predict(dataset_path, model, image_shape, output_label, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, epochs)
     return history, predicted_values, y_true
