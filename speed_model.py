@@ -15,7 +15,7 @@ from models.cnn_model import (
     create_cnn_model_v4
 )
 from evaluation_metrics import (
-    print_plot_regression_metrics,
+    print_plot_classification_metrics,
     plot_metrics
 )
 
@@ -97,7 +97,7 @@ class SpeedModel():
             self.evaluate_df = [None, None]
         
         # Split data for training and validation
-        X_train, X_val, self.train_labels, val_labels = build_training_validation_and_evaluation_sets(
+        X_train, X_val, self.train_labels, self.val_labels = build_training_validation_and_evaluation_sets(
                                                         TrainVal_set_path, TrainVal_labels, self.train_val_split)
 
         print("\n\n TRAINING DATASET: Print Data in Training data and Validation data.\n") 
@@ -115,7 +115,7 @@ class SpeedModel():
 
         if self.FIRST_TRAIN_FLAG:
             # Train the model
-            history_speed, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
+            history_speed, evaluation_metrics, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_speed, "speed", self.augmentation, self.epochs_speed, 
                                                                         self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
         else: 
@@ -125,14 +125,16 @@ class SpeedModel():
             model = load_model(model_path_speed)
             # Unfreeze all layers for training
             model.trainable = True
-            history_speed, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
+            history_speed, evaluation_metrics, predicted_speed, y_true_speed = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_speed, "speed", self.augmentation, self.epochs_speed, 
                                                                         self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
 
             # Plot evaluation metrics
             if self.DATA_SPLIT_TO_EVALUATE_FLAG:
+                # Split data in data for traiining and evaluation / and data for testing.
                 print_plot_classification_metrics(y_true_speed, predicted_speed)
-            plot_metrics(history_speed, "speed", self.epochs_speed)
+                
+            plot_metrics(history_speed, "speed", self.epochs_speed, evaluation_metrics)
 
     
 

@@ -80,99 +80,54 @@ def train(dataset_path, train_labels, val_labels,  model, image_shape, output_la
         verbose=1  # Set verbose to 0 to disable the default progress bar
     )
 
-    # Get the current date
-    current_date = datetime.now().strftime("%m-%d_%H-%M")
-    # Save the compiled model and trained.
-    model.trainable = False
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    model.save(os.path.join(directory, f'{current_date}_CNN_model_{output_label}_epochs{epochs}.h5'))
-
-    return history
-
-def train2(dataset_path, train_labels, val_labels, model, image_shape, output_label, augumentation, epochs, batch_size, directory='trained_models'):
-    model = compile_model(model, output_label)    
-
-    training_images_directory = build_training_directory_img(dataset_path)
-    train_data_generator = create_data_generator(training_images_directory, train_labels, batch_size, image_shape, output_label, augumentation)
-    val_data_generator = create_data_generator(training_images_directory, val_labels, batch_size, image_shape, output_label, augumentation)
-
-    train_losses = []
-    train_accuracies = []
-    train_precisions = []
-    train_recalls = []
-    train_aucs = []
-    train_mses = []
-    train_maes = []
-
-    val_losses = []
-    val_accuracies = []
-    val_precisions = []
-    val_recalls = []
-    val_aucs = []
-    val_mses = []
-    val_maes = []
-
+    # Initialize dictionary to store evaluation metrics for each epoch
+    evaluation_metrics = []
+    # Evaluate the model on the validation data after each epoch
     for epoch in range(epochs):
-        print(f"Epoch {epoch+1}/{epochs}")
-        history = model.fit(
-            train_data_generator,
-            epochs=1,  # Train for one epoch
-            verbose=1,  
-            steps_per_epoch=len(train_data_generator),
-            validation_data=val_data_generator,
-            validation_steps=len(val_data_generator)
-        )
+        # Evaluate the model on the validation data
+        evaluation = model.evaluate(val_data_generator)
+        # Print the evaluation metrics
+        if output_label == "speed":
 
-        # Extracting training metrics
-        train_losses.append(history.history['loss'][0])
-        train_accuracies.append(history.history['accuracy'][0])
-        train_precisions.append(history.history['precision'][0])
-        train_recalls.append(history.history['recall'][0])
-        train_aucs.append(history.history['auc'][0])
-        train_mses.append(history.history['mse'][0])
-        train_maes.append(history.history['mae'][0])
+            print(f'Epoch {epoch + 1} - Validation Loss: {evaluation[0]}, Validation Binary Accuracy: {evaluation[1]}, Validation Precision: {evaluation[2]}, Validation Recall: {evaluation[3]}, Validation AUC: {evaluation[4]}, Validation MSE: {evaluation[5]}, Validation MAE: {evaluation[6]}')
 
-        # Evaluate model on validation data
-        val_loss, val_accuracy, val_precision, val_recall, val_auc, val_mse, val_mae = model.evaluate(val_data_generator, verbose=0)
+            # Store the evaluation metrics in the list
+            evaluation_metrics.append({
+                'epoch': epoch + 1,
+                'loss': evaluation[0],
+                'binary_accuracy': evaluation[1],
+                'precision': evaluation[2],
+                'recall': evaluation[3],
+                'auc': evaluation[4],
+                'mse': evaluation[5],
+                'mae': evaluation[6]
+            })
 
-        # Store validation metrics
-        val_losses.append(val_loss)
-        val_accuracies.append(val_accuracy)
-        val_precisions.append(val_precision)
-        val_recalls.append(val_recall)
-        val_aucs.append(val_auc)
-        val_mses.append(val_mse)
-        val_maes.append(val_mae)
+        if output_label == "angle":
 
+            print(f'Epoch {epoch + 1} - Validation Loss: {evaluation[0]}, Validation MSE: {evaluation[1]}, Validation MAE: {evaluation[2]}')
+                  
+            # Store the evaluation metrics in the list
+            evaluation_metrics.append({
+                'epoch': epoch + 1,
+                'loss': evaluation[0],
+                'mse': evaluation[1],
+                'mae': evaluation[2]
+            })
+        
+        
+  
     # Get the current date
     current_date = datetime.now().strftime("%m-%d_%H-%M")
-    
     # Save the compiled model and trained.
     model.trainable = False
     if not os.path.exists(directory):
         os.makedirs(directory)
     model.save(os.path.join(directory, f'{current_date}_CNN_model_{output_label}_epochs{epochs}.h5'))
 
-    # Return training and validation metrics
-    return {
-        'train_loss': train_losses,
-        'train_accuracy': train_accuracies,
-        'train_precision': train_precisions,
-        'train_recall': train_recalls,
-        'train_auc': train_aucs,
-        'train_mse': train_mses,
-        'train_mae': train_maes,
-        'val_loss': val_losses,
-        'val_accuracy': val_accuracies,
-        'val_precision': val_precisions,
-        'val_recall': val_recalls,
-        'val_auc': val_aucs,
-        'val_mse': val_mses,
-        'val_mae': val_maes
-    }
+    return history, evaluation_metrics
 
-def test_cnn_model(dataset_path, model, image_shape, output_label, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, epochs, directory='predictions_submission'):
+def model_predict(dataset_path, model, image_shape, output_label, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, epochs, directory='predictions_submission'):
     """
     Tests the trained CNN model.
 
@@ -249,6 +204,6 @@ def train_test_model(dataset_path, train_labels, val_labels, model, output_label
     - DataFrame containing prediction results.
     - True labels (only for evaluation purposes).
     """
-    history = train(dataset_path, train_labels, val_labels, model, image_shape, output_label, augumentation, epochs, batch_size)
-    predicted_values, y_true = test_cnn_model(dataset_path, model, image_shape, output_label, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, epochs)
-    return history, predicted_values, y_true
+    history,evaluation_metrics = train(dataset_path, train_labels, val_labels, model, image_shape, output_label, augumentation, epochs, batch_size)
+    predicted_values, y_true = model_predict(dataset_path, model, image_shape, output_label, DATA_SPLIT_TO_EVALUATE_FLAG, evaluate_df, epochs)
+    return history, evaluation_metrics, predicted_values, y_true

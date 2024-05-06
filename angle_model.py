@@ -97,7 +97,7 @@ class AngleModel():
             self.evaluate_df = [None, None]
         
         # Split data for training and validation
-        X_train, X_val, self.train_labels, val_labels = build_training_validation_and_evaluation_sets(
+        X_train, X_val, self.train_labels, self.val_labels = build_training_validation_and_evaluation_sets(
                                                         TrainVal_set_path, TrainVal_labels, self.train_val_split)
 
         print("\n\n TRAINING DATASET: Print Data in Training data and Validation data.\n") 
@@ -115,7 +115,7 @@ class AngleModel():
 
         if self.FIRST_TRAIN_FLAG:
             # Train the model
-            history_angle, predicted_angle, y_true_angle = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
+            history_angle, evaluation_metrics, predicted_angle, y_true_angle = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_angle, "angle", self.augmentation, self.epochs_angle, 
                                                                         self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
         else: 
@@ -125,14 +125,14 @@ class AngleModel():
             model = load_model(model_path_angle)
             # Unfreeze all layers for training
             model.trainable = True
-            history_angle, predicted_angle, y_true_angle = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
+            history_angle, evaluation_metrics, predicted_angle, y_true_angle = train_test_model(self.dataset_path, self.train_labels, self.val_labels, 
                                                                         model_angle, "angle", self.augmentation, self.epochs_angle, 
                                                                         self.image_shape, self.DATA_SPLIT_TO_EVALUATE_FLAG, self.evaluate_df, self.batch_size)
 
             # Plot evaluation metrics
             if self.DATA_SPLIT_TO_EVALUATE_FLAG:
                 print_plot_regression_metrics(y_true_angle, predicted_angle)
-            plot_metrics(history_angle, "angle", self.epochs_angle)
+            plot_metrics(history_angle, "angle", self.epochs_angle, evaluation_metrics)
 
 # Function to run angle model
 def run_angle_model(data_hyperparameters, training_hyperparameters, setting, model):
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     # TRAINING HYPERPARAMETERS 
     training_hyperparameters = (
         0.0000001,  # learning_rate
-        3,          # epochs_angle
+        2,          # epochs_angle
         0.1,        # eval_split
         0.2         # train_val_split
     )

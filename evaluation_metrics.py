@@ -189,12 +189,15 @@ def plot_regression_metrics(y_true, y_pred, metrics):
     return fig
 
 
+
 def print_plot_classification_metrics(y_true_cls, y_pred_cls):
     print_classification_metrics(y_true_cls, y_pred_cls)
     plot_classification_metrics(y_true_cls, y_pred_cls)
 
 def print_plot_regression_metrics(y_true_reg, y_pred_reg):
     print_regression_metrics(y_true_reg, y_pred_reg)
+
+
 
 def plot_training_metrics(history, output_label, epochs, directory='plots'):
     # Plotting training metrics
@@ -221,21 +224,77 @@ def plot_training_metrics(history, output_label, epochs, directory='plots'):
 
     plt.tight_layout()
   
+    return plt
+
+
+def plot_evaluation_metrics_clasification(evaluation_metrics):
+    epochs = range(1, len(evaluation_metrics) + 1)
+    loss = [metric['loss'] for metric in evaluation_metrics]
+    binary_accuracy = [metric['binary_accuracy'] for metric in evaluation_metrics]
+    precision = [metric['precision'] for metric in evaluation_metrics]
+    recall = [metric['recall'] for metric in evaluation_metrics]
+    auc = [metric['auc'] for metric in evaluation_metrics]
+    mse = [metric['mse'] for metric in evaluation_metrics]
+    mae = [metric['mae'] for metric in evaluation_metrics]
+
+    plt.figure(figsize=(10, 8))
+
+    plt.plot(epochs, loss, 'b', label='Validation Loss')
+    plt.plot(epochs, binary_accuracy, 'g', label='Binary Accuracy')
+    plt.plot(epochs, precision, 'r', label='Precision')
+    plt.plot(epochs, recall, 'c', label='Recall')
+    plt.plot(epochs, auc, 'm', label='AUC')
+    plt.plot(epochs, mse, 'y', label='MSE')
+    plt.plot(epochs, mae, 'k', label='MAE')
+
+    plt.title('Evaluation Metrics')
+    plt.xlabel('Epoch')
+    plt.ylabel('Value')
+    plt.legend()
+
+    
+    return plt
+
+
+def plot_evaluation_metrics_regresion(evaluation_metrics):
+    epochs = range(1, len(evaluation_metrics) + 1)
+    loss = [metric['loss'] for metric in evaluation_metrics]
+    mse = [metric['mse'] for metric in evaluation_metrics]
+    mae = [metric['mae'] for metric in evaluation_metrics]
+
+    plt.figure(figsize=(10, 8))
+
+    plt.plot(epochs, loss, 'b', label='Validation Loss')
+    plt.plot(epochs, mse, 'g', label='MSE')
+    plt.plot(epochs, mae, 'r', label='MAE')
+
+    plt.title('Evaluation Metrics')
+    plt.xlabel('Epoch')
+    plt.ylabel('Value')
+    plt.legend()
+
+    
+    return plt
+
+    
+def plot_metrics(history, output_label, epochs, evaluation_metrics, directory='plots'):
     current_date = datetime.now().strftime("%m-%d_%H-%M")
     # Create the directory if it doesn't exist
     if not os.path.exists(directory):
         os.makedirs(directory)
+
+
+    plt_training = plot_training_metrics(history, output_label, epochs, directory)
+    
+    if output_label == "angle":
+        plt_evaluation = plot_evaluation_metrics_regresion(evaluation_metrics)
+    if output_label == "speed":
+        plt_evaluation = plot_evaluation_metrics_clasification(evaluation_metrics)
+    
     
     # Save the plot in the directory
-    plt.savefig(os.path.join(directory, f'{current_date}_Model_{output_label}_epochs{epochs}.png'))
-
-    plt.show()
-
-    # Close the current figure
-    plt.close()
-
-def plot_metrics(history, output_label, epochs, directory='plots'):
-    plot_training_metrics(history, output_label, epochs, directory)
+    plt_training.savefig(os.path.join(directory, f'{current_date}_Training_Metrics_{output_label}_epochs{epochs}.png'))    
+    plt_evaluation.savefig(os.path.join(directory, f'{current_date}_Evaluation_Metrics_{output_label}_epochs{epochs}.png'))
 
     
 
